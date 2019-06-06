@@ -1,0 +1,23 @@
+spring:
+    main:
+        banner-mode: "off"
+    datasource:
+        url: jdbc:postgresql://localhost:5432/wolox-training
+        username: wolox-training
+        password: wolox-training
+
+    jpa:
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+#                show_sql: true
+#                format_sql: true
+                jdbc:
+                    lob:
+                        non_contextual_creation: true
+        open-in-view: false
+
+server:
+    port: 8081
