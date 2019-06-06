@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings
+  xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence/orm http://xmlns.jcp.org/xml/ns/persistence/orm_2_2.xsd"
+  version="2.2">
+
+  <package>wolox.training.models</package>
+
+  <entity class="Book" access="FIELD">
+    <table name="books"/>
+    <attributes>
+      <id name="id">
+        <column name="id" nullable="false" insertable="true" updatable="false"/>
+        <generated-value strategy="IDENTITY"/>
+      </id>
+      <basic name="genre">
+        <column name="genre" nullable="true" insertable="true" updatable="false"/>
+      </basic>
+      <basic name="author">
+        <column name="author" nullable="false" insertable="true" updatable="false"/>
+      </basic>
+      <basic name="image">
+        <column name="image" nullable="false" insertable="true" updatable="false"/>
+      </basic>
+      <basic name="title">
+        <column name="title" nullable="false" insertable="true" updatable="false"/>
+      </basic>
+      <basic name="subtitle">
+        <column name="subtitle" nullable="false" insertable="true" updatable="false"/>
+      </basic>
+      <basic name="publisher">
+        <column name="publisher" nullable="false" insertable="true" updatable="false"/>
+      </basic>
+      <basic name="year">
+        <column name="year" nullable="false" insertable="true" updatable="false"/>
+      </basic>
+      <basic name="pages">
+        <column name="pages" nullable="false" insertable="true" updatable="false"/>
+      </basic>
+      <basic name="isbn">
+        <column name="isbn" nullable="false" insertable="true" updatable="false"/>
+      </basic>
+    </attributes>
+  </entity>
+</entity-mappings>

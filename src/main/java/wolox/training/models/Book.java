@@ -8,6 +8,10 @@ import org.springframework.util.Assert;
 public class Book {
 
     /**
+     * The book's id.
+     */
+    private final long id;
+    /**
      * The book's genre.
      */
     private final String genre;
@@ -46,10 +50,12 @@ public class Book {
 
 
     /**
-     * Default constructor for Hibernate.
+     * Default constructor for JPA Provider.
      */
     public Book() {
         // Default constructor that sets final fields with default values
+        // Real values will be set by JPA Provider
+        this.id = 0;
         this.genre = null;
         this.author = null;
         this.image = null;
@@ -86,6 +92,7 @@ public class Book {
         assertYear(year);
         assertPages(pages);
         assertIsbn(isbn);
+        this.id = 0; // Will be set when saving by JPA provider
         this.genre = genre;
         this.author = author;
         this.image = image;
@@ -97,6 +104,13 @@ public class Book {
         this.isbn = isbn;
     }
 
+
+    /**
+     * @return The book's id.
+     */
+    public long getId() {
+        return id;
+    }
 
     /**
      * @return The book's genre.
