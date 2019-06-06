@@ -1,5 +1,6 @@
 package wolox.training.models;
 
+import java.util.Objects;
 import org.springframework.util.Assert;
 
 /**
@@ -173,6 +174,40 @@ public class Book {
      */
     public String getIsbn() {
         return isbn;
+    }
+
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Book)) {
+            return false;
+        }
+        final Book book = (Book) o;
+        return id == book.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Book{" +
+            "id=" + id +
+            ", genre='" + genre + '\'' +
+            ", author='" + author + '\'' +
+            ", image='" + image + '\'' +
+            ", title='" + title + '\'' +
+            ", subtitle='" + subtitle + '\'' +
+            ", publisher='" + publisher + '\'' +
+            ", year='" + year + '\'' +
+            ", pages=" + pages +
+            ", isbn='" + isbn + '\'' +
+            '}';
     }
 
 
