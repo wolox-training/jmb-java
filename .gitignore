@@ -54,3 +54,7 @@ buildNumber.properties
 
 ### VS Code ###
 .vscode/
+
+### FLyway ###
+
+flyway.conf

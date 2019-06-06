@@ -1,10 +1,16 @@
 spring:
+
   main:
     banner-mode: "off"
+
   datasource:
     url: jdbc:postgresql://localhost:5432/wolox-training
     username: wolox-training
     password: wolox-training
+
+  flyway:
+    locations: "classpath:db/migrations"
+
 
   jpa:
     hibernate:
