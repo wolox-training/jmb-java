@@ -16,14 +16,14 @@ import wolox.training.repositories.BookRepository;
 import wolox.training.web.dtos.BookCreationRequestDto;
 
 /**
- * The Book's REST controller.
+ * The {@link Book}s REST controller.
  */
 @RestController
 @RequestMapping(value = "books", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class BookController {
 
     /**
-     * The {@link BookRepository} used to read and write {@code Book} data.
+     * The {@link BookRepository} used to read and write {@link Book} data.
      */
     private final BookRepository bookRepository;
 
@@ -31,7 +31,7 @@ public class BookController {
     /**
      * Constructor.
      *
-     * @param bookRepository The {@link BookRepository} used to read and write {@code Book} data.
+     * @param bookRepository The {@link BookRepository} used to read and write {@link Book} data.
      */
     @Autowired
     public BookController(final BookRepository bookRepository) {
@@ -40,9 +40,9 @@ public class BookController {
 
 
     /**
-     * Endpoint for getting all the {@code Book}s in the system.
+     * Endpoint for getting all the {@link Book}s in the system.
      *
-     * @return A {@link ResponseEntity} of {@link Iterable} of {@code Book}s stored in the system.
+     * @return A {@link ResponseEntity} of {@link Iterable} of {@link Book}s stored in the system.
      * Might be empty.
      */
     @GetMapping
@@ -60,12 +60,13 @@ public class BookController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Book> getById(@PathVariable("id") final long id) {
-        final var book = bookRepository.findById(id);
-        return book.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        return bookRepository.findById(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 
     /**
-     * Creates a {@link Book} according to the given {@link BookCreationRequestDto}.
+     * Endpoint for creating a {@link Book} according to the given {@link BookCreationRequestDto}.
      *
      * @param dto The {@link BookCreationRequestDto} with needed data to create a {@link Book}
      * @return A {@link ResponseEntity} containing the created {@link Book}. The response will
@@ -94,7 +95,7 @@ public class BookController {
     }
 
     /**
-     * Deletes the {@link Book} with the given {@code id}.
+     * Endpoint for deleting the {@link Book} with the given {@code id}.
      *
      * @param id The id of the {@link Book} to be deleted.
      * @return A 204 No Content {@link ResponseEntity}.
