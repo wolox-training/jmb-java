@@ -1,6 +1,5 @@
 package wolox.training.models;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -9,7 +8,6 @@ import org.springframework.util.Assert;
 /**
  * Represents a book.
  */
-@Data
 @ToString(
     doNotUseGetters = true
 )
