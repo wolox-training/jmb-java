@@ -1,11 +1,22 @@
 package wolox.training.models;
 
-import java.util.Objects;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import org.springframework.util.Assert;
 
 /**
  * Represents a book.
  */
+@Data
+@ToString(
+    doNotUseGetters = true
+)
+@EqualsAndHashCode(
+    of = "id"
+)
+@Getter
 public class Book {
 
     /**
@@ -103,111 +114,6 @@ public class Book {
         this.year = year;
         this.pages = pages;
         this.isbn = isbn;
-    }
-
-
-    /**
-     * @return The book's id.
-     */
-    public long getId() {
-        return id;
-    }
-
-    /**
-     * @return The book's genre.
-     */
-    public String getGenre() {
-        return genre;
-    }
-
-    /**
-     * @return The book's author.
-     */
-    public String getAuthor() {
-        return author;
-    }
-
-    /**
-     * @return The book's image.
-     */
-    public String getImage() {
-        return image;
-    }
-
-    /**
-     * @return The book's title.
-     */
-    public String getTitle() {
-        return title;
-    }
-
-    /**
-     * @return The book's subtitle.
-     */
-    public String getSubtitle() {
-        return subtitle;
-    }
-
-    /**
-     * @return The book's publisher.
-     */
-    public String getPublisher() {
-        return publisher;
-    }
-
-    /**
-     * @return The year the book was/is/will be published.
-     */
-    public String getYear() {
-        return year;
-    }
-
-    /**
-     * @return The amount of pages in the book.
-     */
-    public int getPages() {
-        return pages;
-    }
-
-    /**
-     * @return The book's ISBN.
-     */
-    public String getIsbn() {
-        return isbn;
-    }
-
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Book)) {
-            return false;
-        }
-        final Book book = (Book) o;
-        return id == book.id;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "Book{" +
-            "id=" + id +
-            ", genre='" + genre + '\'' +
-            ", author='" + author + '\'' +
-            ", image='" + image + '\'' +
-            ", title='" + title + '\'' +
-            ", subtitle='" + subtitle + '\'' +
-            ", publisher='" + publisher + '\'' +
-            ", year='" + year + '\'' +
-            ", pages=" + pages +
-            ", isbn='" + isbn + '\'' +
-            '}';
     }
 
 
