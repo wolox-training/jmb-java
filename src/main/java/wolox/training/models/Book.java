@@ -62,7 +62,7 @@ public class Book {
     /**
      * Default constructor for JPA Provider.
      */
-    public Book() {
+    /* package */ Book() {
         // Default constructor that sets final fields with default values
         // Real values will be set by JPA Provider
         this.id = 0;
