@@ -28,8 +28,8 @@ import wolox.training.web.dtos.UserDownloadDto;
  * The {@link User}'s REST controller.
  */
 @RestController
-@RequestMapping(value = "users", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Transactional(readOnly = true)
+@RequestMapping(value = "users", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class UserController {
 
     /**
@@ -96,6 +96,7 @@ public class UserController {
      * contain a 201 Created status, together with the header Location where the {@link User} can be
      * found.
      */
+    @Transactional
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<User> createUser(@RequestBody final UserCreationRequestDto dto) {
         final var user = userRepository.save(
@@ -117,6 +118,7 @@ public class UserController {
      * @param userId The id of the {@link User} to be deleted.
      * @return A 204 No Content {@link ResponseEntity}.
      */
+    @Transactional
     @DeleteMapping("/{userId}")
     public ResponseEntity deleteUser(@PathVariable("userId") final long userId) {
         if (userRepository.existsById(userId)) {
@@ -153,8 +155,8 @@ public class UserController {
      * problem, or a 404 Not Found {@link ResponseEntity} if the {@link User} or the {@link Book}
      * does not exist.
      */
-    @PutMapping("/{userId}/books/{bookId}")
     @Transactional
+    @PutMapping("/{userId}/books/{bookId}")
     public ResponseEntity<?> addBook(
         @PathVariable("userId") final long userId,
         @PathVariable("bookId") final long bookId) {
@@ -173,8 +175,8 @@ public class UserController {
      * @apiNote This is an idempotent operation (i.e removing a {@link Book} that is not present in
      * the {@link User}'s list does not cause any error).
      */
-    @DeleteMapping("/{userId}/books/{bookId}")
     @Transactional
+    @DeleteMapping("/{userId}/books/{bookId}")
     public ResponseEntity removeBook(
         @PathVariable("userId") final long userId,
         @PathVariable("bookId") final long bookId) {
