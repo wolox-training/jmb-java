@@ -70,6 +70,7 @@ public class UserController {
         final var users = StreamSupport.stream(userRepository.findAll().spliterator(), false)
             .map(UserDownloadDto::new)
             .collect(Collectors.toList());
+
         return ResponseEntity.ok(users);
     }
 
@@ -98,7 +99,7 @@ public class UserController {
      */
     @Transactional
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<User> createUser(@RequestBody final UserCreationRequestDto dto) {
+    public ResponseEntity<UserDownloadDto> createUser(@RequestBody final UserCreationRequestDto dto) {
         final var user = userRepository.save(
             new User(
                 dto.getUsername(),
@@ -109,7 +110,7 @@ public class UserController {
         final var uri = ControllerLinkBuilder
             .linkTo(ControllerLinkBuilder.methodOn(UserController.class).getById(user.getId()))
             .toUri();
-        return ResponseEntity.created(uri).body(user);
+        return ResponseEntity.created(uri).body(new UserDownloadDto(user));
     }
 
     /**
