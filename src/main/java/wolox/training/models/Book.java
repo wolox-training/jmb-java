@@ -1,9 +1,9 @@
 package wolox.training.models;
 
+import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import org.springframework.util.Assert;
 
 /**
  * Represents a book.
@@ -122,7 +122,7 @@ public class Book {
      * @throws IllegalArgumentException If the given {@code author} value is not valid.
      */
     private static void assertAuthor(final String author) {
-        Assert.notNull(author, "The author must not be null");
+        Preconditions.checkNotNull(author, "The author must not be null");
     }
 
     /**
@@ -132,7 +132,7 @@ public class Book {
      * @throws IllegalArgumentException If the given {@code image} value is not valid.
      */
     private static void assertImage(final String image) {
-        Assert.notNull(image, "The image must not be null");
+        Preconditions.checkNotNull(image, "The image must not be null");
     }
 
     /**
@@ -142,7 +142,7 @@ public class Book {
      * @throws IllegalArgumentException If the given {@code title} value is not valid.
      */
     private static void assertTitle(final String title) {
-        Assert.notNull(title, "The title must not be null");
+        Preconditions.checkNotNull(title, "The title must not be null");
     }
 
     /**
@@ -152,7 +152,7 @@ public class Book {
      * @throws IllegalArgumentException If the given {@code subtitle} value is not valid.
      */
     private static void assertSubtitle(final String subtitle) {
-        Assert.notNull(subtitle, "The subtitle must not be null");
+        Preconditions.checkNotNull(subtitle, "The subtitle must not be null");
     }
 
     /**
@@ -162,7 +162,7 @@ public class Book {
      * @throws IllegalArgumentException If the given {@code publisher} value is not valid.
      */
     private static void assertPublisher(final String publisher) {
-        Assert.notNull(publisher, "The publisher must not be null");
+        Preconditions.checkNotNull(publisher, "The publisher must not be null");
     }
 
     /**
@@ -172,7 +172,7 @@ public class Book {
      * @throws IllegalArgumentException If the given {@code year} value is not valid.
      */
     private static void assertYear(final String year) {
-        Assert.notNull(year, "The year must not be null");
+        Preconditions.checkNotNull(year, "The year must not be null");
     }
 
     /**
@@ -182,8 +182,8 @@ public class Book {
      * @throws IllegalArgumentException If the given {@code pages} value is not valid.
      */
     private static void assertPages(final Integer pages) {
-        Assert.notNull(pages, "The pages must not be null");
-        Assert.isTrue(pages > 0, "The amount of pages must be positive");
+        Preconditions.checkNotNull(pages, "The pages must not be null");
+        Preconditions.checkArgument(pages > 0, "The amount of pages must be positive");
     }
 
     /**
@@ -193,6 +193,6 @@ public class Book {
      * @throws IllegalArgumentException If the given {@code isbn} value is not valid.
      */
     private static void assertIsbn(final String isbn) {
-        Assert.notNull(isbn, "The isbn must not be null");
+        Preconditions.checkNotNull(isbn, "The isbn must not be null");
     }
 }
