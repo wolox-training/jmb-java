@@ -117,7 +117,7 @@ public class User {
      * Asserts the given {@code username}.
      *
      * @param username The username value to be asserted.
-     * @throws IllegalArgumentException If the given {@code username} value is not valid.
+     * @throws IllegalArgumentException If the given {@code username} is {@code null}.
      */
     private static void assertUsername(final String username) {
         Preconditions.checkNotNull(username, "The username must not be null");
@@ -127,7 +127,7 @@ public class User {
      * Asserts the given {@code name}.
      *
      * @param name The name value to be asserted.
-     * @throws IllegalArgumentException If the given {@code name} value is not valid.
+     * @throws NullPointerException If the given {@code name} is {@code null}.
      */
     private static void assertName(final String name) {
         Preconditions.checkNotNull(name, "The name must not be null");
@@ -137,7 +137,9 @@ public class User {
      * Asserts the given {@code birthDate}.
      *
      * @param birthDate The birthDate value to be asserted.
-     * @throws IllegalArgumentException If the given {@code birthDate} value is not valid.
+     * @throws NullPointerException If the given {@code birthDate} is {@code null}
+     * @throws IllegalArgumentException If the given {@code birthDate} is not in the past (i.e is
+     * not before {@link LocalDate#now()}).
      */
     private static void assertBirthData(final LocalDate birthDate) {
         Preconditions.checkNotNull(birthDate, "The birth date must not be null");
@@ -151,7 +153,7 @@ public class User {
      * Asserts the given {@code book}.
      *
      * @param book The {@link Book} value to be asserted.
-     * @throws IllegalArgumentException If the given {@code book} value is not valid.
+     * @throws NullPointerException If the given {@code book} is {@code null}.
      */
     private static void assertBook(final Book book) {
         Preconditions.checkNotNull(book, "The book must not be null");

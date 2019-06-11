@@ -119,7 +119,7 @@ public class Book {
      * Asserts the given {@code author}.
      *
      * @param author The author value to be asserted.
-     * @throws IllegalArgumentException If the given {@code author} value is not valid.
+     * @throws NullPointerException If the given {@code author} is {@code null}.
      */
     private static void assertAuthor(final String author) {
         Preconditions.checkNotNull(author, "The author must not be null");
@@ -129,7 +129,7 @@ public class Book {
      * Asserts the given {@code image}.
      *
      * @param image The image value to be asserted.
-     * @throws IllegalArgumentException If the given {@code image} value is not valid.
+     * @throws NullPointerException If the given {@code image} is {@code null}.
      */
     private static void assertImage(final String image) {
         Preconditions.checkNotNull(image, "The image must not be null");
@@ -139,7 +139,7 @@ public class Book {
      * Asserts the given {@code title}.
      *
      * @param title The title value to be asserted.
-     * @throws IllegalArgumentException If the given {@code title} value is not valid.
+     * @throws NullPointerException If the given {@code title} is {@code null}.
      */
     private static void assertTitle(final String title) {
         Preconditions.checkNotNull(title, "The title must not be null");
@@ -149,7 +149,7 @@ public class Book {
      * Asserts the given {@code subtitle}.
      *
      * @param subtitle The subtitle value to be asserted.
-     * @throws IllegalArgumentException If the given {@code subtitle} value is not valid.
+     * @throws NullPointerException If the given {@code subtitle} is {@code null}.
      */
     private static void assertSubtitle(final String subtitle) {
         Preconditions.checkNotNull(subtitle, "The subtitle must not be null");
@@ -159,7 +159,7 @@ public class Book {
      * Asserts the given {@code publisher}.
      *
      * @param publisher The publisher value to be asserted.
-     * @throws IllegalArgumentException If the given {@code publisher} value is not valid.
+     * @throws NullPointerException If the given {@code publisher} is {@code null}.
      */
     private static void assertPublisher(final String publisher) {
         Preconditions.checkNotNull(publisher, "The publisher must not be null");
@@ -169,7 +169,7 @@ public class Book {
      * Asserts the given {@code year}.
      *
      * @param year The year value to be asserted.
-     * @throws IllegalArgumentException If the given {@code year} value is not valid.
+     * @throws NullPointerException If the given {@code year} is {@code null}.
      */
     private static void assertYear(final String year) {
         Preconditions.checkNotNull(year, "The year must not be null");
@@ -179,7 +179,8 @@ public class Book {
      * Asserts the given {@code pages}.
      *
      * @param pages The pages value to be asserted.
-     * @throws IllegalArgumentException If the given {@code pages} value is not valid.
+     * @throws NullPointerException If the given {@code pages} is {@code null}.
+     * @throws IllegalArgumentException If the given {@code pages} value is not positive.
      */
     private static void assertPages(final Integer pages) {
         Preconditions.checkNotNull(pages, "The pages must not be null");
@@ -190,7 +191,7 @@ public class Book {
      * Asserts the given {@code isbn}.
      *
      * @param isbn The isbn value to be asserted.
-     * @throws IllegalArgumentException If the given {@code isbn} value is not valid.
+     * @throws NullPointerException If the given {@code isbn} is {@code null}.
      */
     private static void assertIsbn(final String isbn) {
         Preconditions.checkNotNull(isbn, "The isbn must not be null");
