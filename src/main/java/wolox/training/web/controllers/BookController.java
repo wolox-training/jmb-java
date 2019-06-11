@@ -20,7 +20,7 @@ import wolox.training.web.dtos.BookCreationRequestDto;
  * The {@link Book}s REST controller.
  */
 @RestController
-@RequestMapping(value = "books", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+@RequestMapping(value = "/api/books", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Transactional(readOnly = true)
 public class BookController {
 
