@@ -1,0 +1,1 @@
+ALTER TABLE books ADD PRIMARY KEY (id);

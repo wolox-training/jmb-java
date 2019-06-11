@@ -43,4 +43,31 @@
       </basic>
     </attributes>
   </entity>
+
+  <entity class="User" access="FIELD">
+    <table name="users"/>
+    <attributes>
+      <id name="id">
+        <column name="id" nullable="false" insertable="true" updatable="false"/>
+        <generated-value strategy="IDENTITY"/>
+      </id>
+      <basic name="username">
+        <column name="username" nullable="false" insertable="true" updatable="false"/>
+      </basic>
+      <basic name="name">
+        <column name="name" nullable="false" insertable="true" updatable="false"/>
+      </basic>
+      <basic name="birthDate">
+        <column name="birth_date" nullable="false" insertable="true" updatable="false"/>
+      </basic>
+      <many-to-many name="books" fetch="LAZY">
+        <join-table name="user_books">
+          <join-column name="user_id"
+            nullable="false" insertable="true" updatable="false" referenced-column-name="id"/>
+          <inverse-join-column name="book_id"
+            nullable="false" insertable="true" updatable="false" referenced-column-name="id"/>
+        </join-table>
+      </many-to-many>
+    </attributes>
+  </entity>
 </entity-mappings>
