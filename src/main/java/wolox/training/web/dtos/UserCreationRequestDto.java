@@ -3,11 +3,9 @@ package wolox.training.web.dtos;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.time.LocalDate;
 import lombok.Getter;
 import wolox.training.models.User;
-import wolox.training.web.dtos.deserializers.IsoLocalDateDeserializer;
 
 /**
  * A Data Transfer Object to receive information to create a new {@link User}.
@@ -40,8 +38,7 @@ public class UserCreationRequestDto {
     public UserCreationRequestDto(
         @JsonProperty(value = "username", access = Access.WRITE_ONLY) final String username,
         @JsonProperty(value = "name", access = Access.WRITE_ONLY) final String name,
-        @JsonProperty(value = "birthDate", access = Access.WRITE_ONLY)
-        @JsonDeserialize(using = IsoLocalDateDeserializer.class) final LocalDate birthDate) {
+        @JsonProperty(value = "birthDate", access = Access.WRITE_ONLY) final LocalDate birthDate) {
         this.username = username;
         this.name = name;
         this.birthDate = birthDate;
