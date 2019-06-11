@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +21,7 @@ import wolox.training.web.dtos.BookCreationRequestDto;
  */
 @RestController
 @RequestMapping(value = "books", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+@Transactional(readOnly = true)
 public class BookController {
 
     /**
@@ -74,6 +76,7 @@ public class BookController {
      * found.
      */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @Transactional
     public ResponseEntity<Book> createBook(@RequestBody final BookCreationRequestDto dto) {
         final var book = bookRepository.save(
             new Book(
@@ -101,6 +104,7 @@ public class BookController {
      * @return A 204 No Content {@link ResponseEntity}.
      */
     @DeleteMapping("/{id}")
+    @Transactional
     public ResponseEntity deleteBook(@PathVariable("id") final long id) {
         if (bookRepository.existsById(id)) {
             bookRepository.deleteById(id);
