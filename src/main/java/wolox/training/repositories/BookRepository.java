@@ -1,14 +1,15 @@
 package wolox.training.repositories;
 
 import java.util.Optional;
-import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 import wolox.training.models.Book;
 
 /**
  * A repository for {@link Book}s.
  */
-@org.springframework.stereotype.Repository
-public interface BookRepository extends Repository<Book, Long> {
+@Repository
+public interface BookRepository extends CrudRepository<Book, Long> {
 
     /**
      * Returns one {@link Book} of the given {@code author}
