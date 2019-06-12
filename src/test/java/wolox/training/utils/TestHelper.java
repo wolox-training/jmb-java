@@ -19,6 +19,16 @@ public class TestHelper {
     private TestHelper() {
     }
 
+
+    /**
+     * Mocks a {@link Book}'s id using {@link Faker} utilities.
+     *
+     * @return A mocked {@link Book} id.
+     */
+    public static long mockBookId() {
+        return Faker.instance().number().numberBetween(Long.MIN_VALUE, Long.MAX_VALUE);
+    }
+
     /**
      * Mocks a {@link Book} using {@link Faker} utilities.
      *

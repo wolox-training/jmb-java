@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Collections;
+import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.springframework.boot.test.mock.mockito.MockBeans;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
+import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
 import wolox.training.utils.TestHelper;
 import wolox.training.web.controllers.BookController;
@@ -33,6 +35,17 @@ import wolox.training.web.controllers.BookController;
     @MockBean(BookRepository.class),
 })
 class BookControllerTest {
+
+    /**
+     * The API base path for {@link Book}s.
+     */
+    private static final String BOOKS_PATH = "/api/books/";
+
+    /**
+     * The API path for a specific {@link Book} (located by its id).
+     */
+    private static final String BOOK_PATH_ID = BOOKS_PATH + "{id}/";
+
 
     /**
      * The {@link MockMvc} instance to perform testing over the {@link BookController}.
@@ -72,9 +85,10 @@ class BookControllerTest {
         );
     }
 
+
     /**
-     * Tests the API response when requesting all books ({@link BookController#getAllBooks()}, and
-     * none is returned by the {@link BookRepository}.
+     * Tests the API response when requesting all {@link Book}s (i.e using the controller method
+     * {@link BookController#getAllBooks()}), and none is returned by the {@link BookRepository}.
      *
      * @param bookRepository A mocked {@link BookRepository} to be injected to the controller.
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
@@ -84,7 +98,7 @@ class BookControllerTest {
     void testGetAllBooksReturningEmptyList(@Autowired final BookRepository bookRepository)
         throws Exception {
         when(bookRepository.findAll()).thenReturn(Collections.emptyList());
-        mockMvc.perform(get("/api/books").contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        mockMvc.perform(get(BOOKS_PATH).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$", hasSize(0)))
@@ -92,8 +106,9 @@ class BookControllerTest {
     }
 
     /**
-     * Tests the API response when requesting all books ({@link BookController#getAllBooks()}, and a
-     * none empty {@link Iterable} is returned by the {@link BookRepository}.
+     * Tests the API response when requesting all {@link Book}s (i.e using the controller method
+     * {@link BookController#getAllBooks()}), and a non-empty {@link Iterable} is returned by the
+     * {@link BookRepository}.
      *
      * @param bookRepository A mocked {@link BookRepository} to be injected to the controller.
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
@@ -105,11 +120,51 @@ class BookControllerTest {
         final var maxListSize = 10;
         final var mockedList = TestHelper.mockBookList(maxListSize);
         when(bookRepository.findAll()).thenReturn(mockedList);
-        mockMvc.perform(get("/api/books").contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        mockMvc.perform(get(BOOKS_PATH).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$", hasSize(mockedList.size())))
             .andExpect(WebTestHelper.bookListJsonResultMatcher(mockedList))
+        ;
+    }
+
+
+    /**
+     * Tests the API response when requesting a {@link Book} by its id (i.e the controller method is
+     * {@link BookController#getById(long)} ()}), and an empty {@link Optional} is returned by the
+     * {@link BookRepository}.
+     *
+     * @param bookRepository A mocked {@link BookRepository} to be injected to the controller.
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Get Book by id - Not exists")
+    void testGetNonExistenceBook(@Autowired final BookRepository bookRepository) throws Exception {
+        final var id = TestHelper.mockBookId();
+        when(bookRepository.findById(id)).thenReturn(Optional.empty());
+        mockMvc.perform(get(BOOK_PATH_ID, id).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(status().isNotFound())
+        ;
+    }
+
+    /**
+     * Tests the API response when requesting a {@link Book} by its id (i.e the controller method is
+     * {@link BookController#getById(long)} ()}), and a non empty {@link Optional} is returned by
+     * the {@link BookRepository}.
+     *
+     * @param bookRepository A mocked {@link BookRepository} to be injected to the controller.
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Get Book by id - Exists")
+    void testGetExistingBook(@Autowired final BookRepository bookRepository) throws Exception {
+        final var id = TestHelper.mockBookId();
+        final var mockedBook = TestHelper.mockBook();
+        when(bookRepository.findById(id)).thenReturn(Optional.of(mockedBook));
+        mockMvc.perform(get(BOOK_PATH_ID, id).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(WebTestHelper.bookJsonResultMatcher(mockedBook, "$"))
         ;
     }
 }
