@@ -1,9 +1,14 @@
 package wolox.training.web;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -12,10 +17,12 @@ import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.MockBeans;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
@@ -23,6 +30,7 @@ import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
 import wolox.training.utils.TestHelper;
 import wolox.training.web.controllers.BookController;
+import wolox.training.web.dtos.BookCreationRequestDto;
 
 
 /**
@@ -103,6 +111,7 @@ class BookControllerTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$", hasSize(0)))
         ;
+        verify(bookRepository, only()).findAll();
     }
 
     /**
@@ -126,6 +135,7 @@ class BookControllerTest {
             .andExpect(jsonPath("$", hasSize(mockedList.size())))
             .andExpect(WebTestHelper.bookListJsonResultMatcher(mockedList))
         ;
+        verify(bookRepository, only()).findAll();
     }
 
 
@@ -145,6 +155,7 @@ class BookControllerTest {
         mockMvc.perform(get(BOOK_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isNotFound())
         ;
+        verify(bookRepository, only()).findById(id);
     }
 
     /**
@@ -166,5 +177,67 @@ class BookControllerTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(WebTestHelper.bookJsonResultMatcher(mockedBook, "$"))
         ;
+        verify(bookRepository, only()).findById(id);
     }
+
+    /**
+     * Tests the API response when creating a {@link Book} (i.e the controller method is {@link
+     * BookController#createBook(BookCreationRequestDto)}), and an empty body is sent.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Create Book - Empty body")
+    void testCreateWithNoBody(@Autowired final BookRepository bookRepository) throws Exception {
+        mockMvc.perform(
+            post(BOOKS_PATH)
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .content(WebTestHelper.emptyContent())
+        ).andExpect(status().isBadRequest())
+        ;
+        verifyZeroInteractions(bookRepository);
+    }
+
+    /**
+     * Tests the API response when creating a {@link Book} (i.e the controller method is {@link
+     * BookController#createBook(BookCreationRequestDto)}), and a the sent JSON has invalid values.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Create Book - Invalid arguments")
+    void testCreateWithInvalidArguments(@Autowired final BookRepository bookRepository)
+        throws Exception {
+        mockMvc.perform(
+            post(BOOKS_PATH)
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .content(WebTestHelper.invalidBookCreationRequest())
+        ).andExpect(status().isBadRequest())
+        ;
+        verifyZeroInteractions(bookRepository);
+    }
+
+    /**
+     * Tests the API response when creating a {@link Book} (i.e the controller method is {@link
+     * BookController#createBook(BookCreationRequestDto)}), and a the sent JSON has valid values.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Create Book - Valid arguments")
+    void testCreateWithValidArguments(@Autowired final BookRepository bookRepository)
+        throws Exception {
+        when(bookRepository.save(Mockito.any(Book.class))).then(i -> i.getArgument(0));
+        mockMvc.perform(
+            post(BOOKS_PATH)
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .content(WebTestHelper.validBookCreationRequest())
+        )
+            .andExpect(status().isCreated())
+            .andExpect(header().exists(HttpHeaders.LOCATION))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        ;
+    }
+
+
 }

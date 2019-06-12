@@ -4,7 +4,14 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
+import java.io.UncheckedIOException;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.springframework.test.web.servlet.ResultMatcher;
@@ -67,5 +74,111 @@ import wolox.training.models.Book;
                         i -> WebTestHelper.bookJsonResultMatcher(books.get(i), "$[" + i + "]"))
             ).toArray(ResultMatcher[]::new)
         );
+    }
+
+
+    /**
+     * Creates an invalid JSON representation of the body to be sent when creating a {@link Book}.
+     *
+     * @return The created JSON.
+     */
+    /* package */
+    static String invalidBookCreationRequest() {
+        return bookCreationRequestJson(
+            Faker.instance().book().genre(), // Genre does not have any precondition.
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+    }
+
+    /**
+     * Creates a valid JSON representation of the body to be sent when creating a {@link Book}.
+     *
+     * @return The created JSON.
+     */
+    /* package */
+    static String validBookCreationRequest() {
+        return bookCreationRequestJson(
+            Faker.instance().book().genre(),// Genre does not have any precondition.
+            Faker.instance().book().author(),
+            Faker.instance().internet().image(),
+            Faker.instance().book().title(),
+            Faker.instance().book().title(), // Use this as subtitle
+            Faker.instance().book().publisher(),
+            Long.toString(Faker.instance().number().numberBetween(1950, LocalDate.now().getYear())),
+            Faker.instance().number().numberBetween(1, 2000), // Book has at most 2000 pages
+            Faker.instance().code().isbn13()
+        );
+    }
+
+    /**
+     * Creates a JSON representation of the body to be sent when creating a {@link Book}.
+     *
+     * @param genre The book's genre.
+     * @param author The book's author.
+     * @param image The book's image.
+     * @param title The book's title.
+     * @param subtitle The book's subtitle.
+     * @param publisher The book's publisher.
+     * @param year The year the book was/is/will be published.
+     * @param pages The amount of pages in the book.
+     * @param isbn The book's ISBN.
+     * @return The created JSON.
+     */
+    /* package */
+    static String bookCreationRequestJson(
+        final String genre,
+        final String author,
+        final String image,
+        final String title,
+        final String subtitle,
+        final String publisher,
+        final String year,
+        final Integer pages,
+        final String isbn) {
+        final Map<String, Object> map = new HashMap<>();
+        map.put("genre", genre);
+        map.put("author", author);
+        map.put("image", image);
+        map.put("title", title);
+        map.put("subtitle", subtitle);
+        map.put("publisher", publisher);
+        map.put("year", year);
+        map.put("pages", pages);
+        map.put("isbn", isbn);
+        return toJsonString(map);
+    }
+
+    /**
+     * Transforms the given {@code object} into its JSON representation.
+     *
+     * @param object The object to be converted.
+     * @param <T> The concrete type of the {@code object}.
+     * @return A JSON representation of the {@code object}.
+     * @implNote This method uses {@link ObjectMapper#writeValueAsString(Object)}.
+     */
+    /* package */
+    static <T> String toJsonString(final T object) {
+        try {
+            return new ObjectMapper().writeValueAsString(object);
+        } catch (final JsonProcessingException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Creates an empty content {@code byte} array.
+     *
+     * @return An empty {@code byte} array.
+     */
+    /* package */
+    static byte[] emptyContent() {
+        return new byte[0];
     }
 }
