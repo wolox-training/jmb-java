@@ -98,7 +98,7 @@ class BookControllerTest {
     void testGetAllBooksReturningEmptyList(@Autowired final BookRepository bookRepository)
         throws Exception {
         when(bookRepository.findAll()).thenReturn(Collections.emptyList());
-        mockMvc.perform(get(BOOKS_PATH).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        mockMvc.perform(get(BOOKS_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$", hasSize(0)))
@@ -120,7 +120,7 @@ class BookControllerTest {
         final var maxListSize = 10;
         final var mockedList = TestHelper.mockBookList(maxListSize);
         when(bookRepository.findAll()).thenReturn(mockedList);
-        mockMvc.perform(get(BOOKS_PATH).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        mockMvc.perform(get(BOOKS_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$", hasSize(mockedList.size())))
@@ -142,7 +142,7 @@ class BookControllerTest {
     void testGetNonExistenceBook(@Autowired final BookRepository bookRepository) throws Exception {
         final var id = TestHelper.mockBookId();
         when(bookRepository.findById(id)).thenReturn(Optional.empty());
-        mockMvc.perform(get(BOOK_PATH_ID, id).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        mockMvc.perform(get(BOOK_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isNotFound())
         ;
     }
@@ -161,7 +161,7 @@ class BookControllerTest {
         final var id = TestHelper.mockBookId();
         final var mockedBook = TestHelper.mockBook();
         when(bookRepository.findById(id)).thenReturn(Optional.of(mockedBook));
-        mockMvc.perform(get(BOOK_PATH_ID, id).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+        mockMvc.perform(get(BOOK_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(WebTestHelper.bookJsonResultMatcher(mockedBook, "$"))
