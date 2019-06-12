@@ -87,7 +87,8 @@ class BookControllerTest {
         mockMvc.perform(get("/api/books").contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$", hasSize(0)));
+            .andExpect(jsonPath("$", hasSize(0)))
+        ;
     }
 
     /**
@@ -101,13 +102,14 @@ class BookControllerTest {
     @DisplayName("Get all books - Not Empty")
     void testGetAllBooksReturningNonEmptyList(@Autowired final BookRepository bookRepository)
         throws Exception {
-        final var listSize = 10;
-        final var mockedList = TestHelper.mockBookList(listSize);
+        final var maxListSize = 10;
+        final var mockedList = TestHelper.mockBookList(maxListSize);
         when(bookRepository.findAll()).thenReturn(mockedList);
         mockMvc.perform(get("/api/books").contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$", hasSize(mockedList.size())));
-        // TODO: check each element in the returned JSON array?
+            .andExpect(jsonPath("$", hasSize(mockedList.size())))
+            .andExpect(WebTestHelper.bookListJsonResultMatcher(mockedList))
+        ;
     }
 }
