@@ -93,7 +93,7 @@ public class Book {
      */
     public Book(final String genre, final String author, final String image,
         final String title, final String subtitle, final String publisher,
-        final String year, final Integer pages, final String isbn) {
+        final String year, final int pages, final String isbn) {
         assertAuthor(author);
         assertImage(image);
         assertTitle(title);
@@ -182,8 +182,7 @@ public class Book {
      * @throws NullPointerException If the given {@code pages} is {@code null}.
      * @throws IllegalArgumentException If the given {@code pages} value is not positive.
      */
-    private static void assertPages(final Integer pages) {
-        Preconditions.checkNotNull(pages, "The pages must not be null");
+    private static void assertPages(final int pages) {
         Preconditions.checkArgument(pages > 0, "The amount of pages must be positive");
     }
 
