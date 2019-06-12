@@ -1,10 +1,15 @@
 package wolox.training.web;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -17,7 +22,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -227,7 +231,7 @@ class BookControllerTest {
     @DisplayName("Create Book - Valid arguments")
     void testCreateWithValidArguments(@Autowired final BookRepository bookRepository)
         throws Exception {
-        when(bookRepository.save(Mockito.any(Book.class))).then(i -> i.getArgument(0));
+        when(bookRepository.save(any(Book.class))).then(i -> i.getArgument(0));
         mockMvc.perform(
             post(BOOKS_PATH)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -237,7 +241,45 @@ class BookControllerTest {
             .andExpect(header().exists(HttpHeaders.LOCATION))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
         ;
+        verify(bookRepository, only()).save(any(Book.class));
     }
 
+    /**
+     * Tests the API response when deleting a {@link Book} by its id (i.e the controller method is
+     * {@link BookController#deleteBook(long)} ), and a the {@link BookRepository} indicates there
+     * is no {@link Book} with the said id.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Delete Book - Not exists")
+    void testDeleteNonExistingBook(@Autowired final BookRepository bookRepository)
+        throws Exception {
+        final var id = TestHelper.mockBookId();
+        when(bookRepository.existsById(id)).thenReturn(false);
+        mockMvc.perform(delete(BOOK_PATH_ID, id))
+            .andExpect(status().isNoContent());
+        verify(bookRepository, only()).existsById(id);
+    }
 
+    /**
+     * Tests the API response when deleting a {@link Book} by its id (i.e the controller method is
+     * {@link BookController#deleteBook(long)} ), and a the {@link BookRepository} indicates that a
+     * {@link Book} with the said id exists.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Delete Book - Exists")
+    void testDeleteExistingBook(@Autowired final BookRepository bookRepository)
+        throws Exception {
+        final var id = TestHelper.mockBookId();
+        when(bookRepository.existsById(id)).thenReturn(true);
+        doNothing().when(bookRepository).deleteById(id);
+        mockMvc.perform(delete(BOOK_PATH_ID, id))
+            .andExpect(status().isNoContent());
+        verify(bookRepository, times(1)).existsById(id);
+        verify(bookRepository, times(1)).deleteById(id);
+        verifyNoMoreInteractions(bookRepository);
+    }
 }
