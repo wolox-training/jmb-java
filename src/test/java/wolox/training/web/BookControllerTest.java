@@ -19,7 +19,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Collections;
 import java.util.Optional;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,37 +63,15 @@ class BookControllerTest {
      */
     private final MockMvc mockMvc;
 
-    /**
-     * The {@link BookController} to be tested.
-     */
-    private final BookController bookController;
 
     /**
      * Constructor.
      *
      * @param mockMvc The {@link MockMvc} to perform testing over the {@link BookController}.
-     * @param bookController The {@link BookController} to be tested.
      */
     @Autowired
-    BookControllerTest(final MockMvc mockMvc,
-        final BookController bookController) {
+    BookControllerTest(final MockMvc mockMvc) {
         this.mockMvc = mockMvc;
-        this.bookController = bookController;
-    }
-
-
-    /**
-     * Tests that this test is loaded correctly.
-     */
-    @Test
-    @DisplayName("Initialization test")
-    void testLoadsCorrectly(@Autowired final BookRepository bookRepository) {
-        Assertions.assertAll(
-            "The test class did not load correctly",
-            () -> Assertions.assertNotNull(mockMvc, "The MockMvc instance was not loaded"),
-            () -> Assertions.assertNotNull(bookController, "The book controller was not loaded."),
-            () -> Assertions.assertNotNull(bookRepository, "The book repository was not loaded.")
-        );
     }
 
 
