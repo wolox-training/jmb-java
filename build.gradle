@@ -19,6 +19,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-hateoas'
     compile 'org.postgresql:postgresql'
     compile 'org.flywaydb:flyway-core'
+    compile 'com.google.guava:guava:27.1-jre'
     compileOnly 'org.projectlombok:lombok:1.18.8'
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     annotationProcessor 'org.projectlombok:lombok:1.18.8'
