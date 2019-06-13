@@ -1,5 +1,6 @@
 package wolox.training.web;
 
+import static java.time.format.DateTimeFormatter.ofPattern;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -17,6 +18,8 @@ import java.util.stream.Stream;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.util.Assert;
 import wolox.training.models.Book;
+import wolox.training.models.User;
+import wolox.training.utils.TestHelper;
 
 /**
  * Helper class for testing the web layer.
@@ -76,6 +79,49 @@ import wolox.training.models.Book;
         );
     }
 
+    /**
+     * Creates a {@link ResultMatcher} to test that a JSON object matches a given {@link User}.
+     *
+     * @param user The {@link User} to be matched.
+     * @param baseExpression The JsonPath base expression (e.g the first element of a list would be
+     * $[0]).
+     * @return The created {@link ResultMatcher}.
+     */
+    /* package */
+    static ResultMatcher userJsonResultMatcher(final User user, final String baseExpression) {
+        Assert.notNull(user, "The user must not be null");
+        Assert.notNull(baseExpression, "The base expression must not be null");
+        return ResultMatcher.matchAll(
+            jsonPath(baseExpression + ".id").value(is(user.getId()), Long.class),
+            jsonPath(baseExpression + ".username", is(user.getUsername())),
+            jsonPath(baseExpression + ".name", is(user.getName())),
+            jsonPath(
+                baseExpression + ".birthDate",
+                is(user.getBirthDate().format(ofPattern("yyyy-MM-dd")))
+            )
+        );
+    }
+
+    /**
+     * Creates a {@link ResultMatcher} to test that a list of JSON objects matches a given {@link
+     * List} of {@link User}s.
+     *
+     * @param users The {@link List} of {@link User}s to be matched.
+     * @return The created {@link ResultMatcher}.
+     */
+    /* package */
+    static ResultMatcher userListJsonResultMatcher(final List<User> users) {
+        Assert.notNull(users, "The users list must not be null");
+        return ResultMatcher.matchAll(
+            Stream.concat(
+                Stream.of(jsonPath("$", hasSize(users.size()))),
+                IntStream.range(0, users.size())
+                    .mapToObj(
+                        i -> WebTestHelper.userJsonResultMatcher(users.get(i), "$[" + i + "]"))
+            ).toArray(ResultMatcher[]::new)
+        );
+    }
+
 
     /**
      * Creates an invalid JSON representation of the body to be sent when creating a {@link Book}.
@@ -104,16 +150,17 @@ import wolox.training.models.Book;
      */
     /* package */
     static String validBookCreationRequest() {
+        final var book = TestHelper.mockBook();
         return bookCreationRequestJson(
-            Faker.instance().book().genre(),// Genre does not have any precondition.
-            Faker.instance().book().author(),
-            Faker.instance().internet().image(),
-            Faker.instance().book().title(),
-            Faker.instance().book().title(), // Use this as subtitle
-            Faker.instance().book().publisher(),
-            Long.toString(Faker.instance().number().numberBetween(1950, LocalDate.now().getYear())),
-            Faker.instance().number().numberBetween(1, 2000), // Book has at most 2000 pages
-            Faker.instance().code().isbn13()
+            book.getGenre(),
+            book.getAuthor(),
+            book.getImage(),
+            book.getTitle(),
+            book.getSubtitle(),
+            book.getPublisher(),
+            book.getYear(),
+            book.getPages(),
+            book.getIsbn()
         );
     }
 
@@ -152,6 +199,62 @@ import wolox.training.models.Book;
         map.put("year", year);
         map.put("pages", pages);
         map.put("isbn", isbn);
+        return toJsonString(map);
+    }
+
+
+    /**
+     * Creates an invalid JSON representation of the body to be sent when creating a {@link User}.
+     *
+     * @return The created JSON.
+     */
+    /* package */
+    static String invalidUserCreationRequest() {
+        return bookCreationRequestJson(
+            Faker.instance().book().genre(), // Genre does not have any precondition.
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+    }
+
+    /**
+     * Creates a valid JSON representation of the body to be sent when creating a {@link User}.
+     *
+     * @return The created JSON.
+     */
+    /* package */
+    static String validUserCreationRequest() {
+        final var user = TestHelper.mockUser();
+        return userCreationRequestJson(
+            user.getUsername(),
+            user.getName(),
+            user.getBirthDate()
+        );
+    }
+
+    /**
+     * Creates a JSON representation of the body to be sent when creating a {@link User}.
+     *
+     * @param username The book's genre.
+     * @param name The book's author.
+     * @param birthDate The book's image.
+     * @return The created JSON.
+     */
+    /* package */
+    static String userCreationRequestJson(
+        final String username,
+        final String name,
+        final LocalDate birthDate) {
+        final Map<String, Object> map = new HashMap<>();
+        map.put("username", username);
+        map.put("name", name);
+        map.put("birthDate", birthDate.format(ofPattern("yyyy-MM-dd")));
         return toJsonString(map);
     }
 
