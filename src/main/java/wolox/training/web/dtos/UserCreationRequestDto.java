@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import java.time.LocalDate;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Past;
 import lombok.Getter;
 import wolox.training.models.User;
 
@@ -16,14 +18,18 @@ public class UserCreationRequestDto {
     /**
      * The username.
      */
+    @NotNull(message = "The username is missing.")
     private final String username;
     /**
      * The user's name.
      */
+    @NotNull(message = "The name is missing.")
     private final String name;
     /**
      * The user's birth date.
      */
+    @NotNull(message = "The birth date is missing.")
+    @Past(message = "The birth date must be in the past")
     private final LocalDate birthDate;
 
 

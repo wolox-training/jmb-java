@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.MediaType;
@@ -99,7 +100,8 @@ public class UserController {
      */
     @Transactional
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<UserDownloadDto> createUser(@RequestBody final UserCreationRequestDto dto) {
+    public ResponseEntity<UserDownloadDto> createUser(
+        @RequestBody @Valid final UserCreationRequestDto dto) {
         final var user = userRepository.save(
             new User(
                 dto.getUsername(),
