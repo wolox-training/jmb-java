@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -31,6 +32,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
+import wolox.training.models.Book;
 import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
 import wolox.training.repositories.UserRepository;
@@ -208,7 +210,7 @@ class UserControllerTest {
 
     /**
      * Tests the API response when creating a {@link User} (i.e the controller method is {@link
-     * UserController#createUser(UserCreationRequestDto)}), and a the sent JSON has invalid values.
+     * UserController#createUser(UserCreationRequestDto)}), and the sent JSON has invalid values.
      *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
@@ -227,7 +229,7 @@ class UserControllerTest {
 
     /**
      * Tests the API response when creating a {@link User} (i.e the controller method is {@link
-     * UserController#createUser(UserCreationRequestDto)}), and a the sent JSON has valid values.
+     * UserController#createUser(UserCreationRequestDto)}), and the sent JSON has valid values.
      *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
@@ -250,7 +252,7 @@ class UserControllerTest {
 
     /**
      * Tests the API response when deleting a {@link User} by its id (i.e the controller method is
-     * {@link UserController#deleteUser(long)} ), and a the {@link UserRepository} indicates there
+     * {@link UserController#deleteUser(long)} ), and the {@link UserRepository} indicates there
      * is no {@link User} with the said id.
      *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
@@ -268,7 +270,7 @@ class UserControllerTest {
 
     /**
      * Tests the API response when deleting a {@link User} by its id (i.e the controller method is
-     * {@link UserController#deleteUser(long)} ), and a the {@link UserRepository} indicates that a
+     * {@link UserController#deleteUser(long)} ), and the {@link UserRepository} indicates that a
      * {@link User} with the said id exists.
      *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
@@ -287,6 +289,14 @@ class UserControllerTest {
         verifyZeroInteractions(bookRepository);
     }
 
+
+    /**
+     * Tests the API response when getting the {@link Book}s of a {@link User} (i.e the controller
+     * method is {@link UserController#getUserBooks(long)} ), and the {@link UserRepository}
+     * indicates that a {@link User} not exists.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
     @Test
     @DisplayName("Get User books - User not exists")
     void testGetUserBooksForNonExistingUser() throws Exception {
@@ -299,6 +309,13 @@ class UserControllerTest {
         verifyZeroInteractions(bookRepository);
     }
 
+    /**
+     * Tests the API response when getting the {@link Book}s of a {@link User} (i.e the controller
+     * method is {@link UserController#getUserBooks(long)} ), and the {@link UserRepository}
+     * indicates that a {@link User} exists, but it does not have any {@link Book}s.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
     @Test
     @DisplayName("Get User books - User does not have books")
     void testGetUserBooksForUserWithoutBooks() throws Exception {
@@ -314,7 +331,13 @@ class UserControllerTest {
         verifyZeroInteractions(bookRepository);
     }
 
-
+    /**
+     * Tests the API response when getting the {@link Book}s of a {@link User} (i.e the controller
+     * method is {@link UserController#getUserBooks(long)} ), and the {@link UserRepository}
+     * indicates that a {@link User} exists, and it has {@link Book}s.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
     @Test
     @DisplayName("Get User books - User has books")
     void testGetUserBooksForUserWithBooks() throws Exception {
@@ -333,4 +356,103 @@ class UserControllerTest {
         verify(userRepository, only()).findById(id);
         verifyZeroInteractions(bookRepository);
     }
+
+
+    /**
+     * Tests the API response when adding a {@link Book} to a {@link User} (i.e the controller
+     * method is {@link UserController#addBook(long, long)} ), and the {@link UserRepository}
+     * indicates that the {@link User} not exists, and the {@link BookRepository} indicates that the
+     * {@link Book} not exists.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Add Book - Book not exists, User not exists")
+    void testAddNonExistingBookToNonExistingUser() throws Exception {
+        final var userId = TestHelper.mockUserId();
+        final var bookId = TestHelper.mockBookId();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
+        mockMvc.perform(put(USER_BOOK_ID, userId, bookId))
+            .andExpect(status().isNotFound())
+        ;
+        verify(userRepository, only()).findById(userId);
+        verifyZeroInteractions(bookRepository);
+    }
+
+
+    /**
+     * Tests the API response when adding a {@link Book} to a {@link User} (i.e the controller
+     * method is {@link UserController#addBook(long, long)} ), and the {@link UserRepository}
+     * indicates that the {@link User} not exists, but the {@link BookRepository} indicates that the
+     * {@link Book} exists.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Add Book - Book exists, User not exists")
+    void testAddExistingBookToNonExistingUser() throws Exception {
+        final var userId = TestHelper.mockUserId();
+        final var bookId = TestHelper.mockBookId();
+        final var mockedBook = Mockito.mock(Book.class);
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockedBook));
+        mockMvc.perform(put(USER_BOOK_ID, userId, bookId))
+            .andExpect(status().isNotFound())
+        ;
+        verify(userRepository, only()).findById(userId);
+        verifyZeroInteractions(bookRepository);
+    }
+
+    /**
+     * Tests the API response when adding a {@link Book} to a {@link User} (i.e the controller
+     * method is {@link UserController#addBook(long, long)} ), and the {@link UserRepository}
+     * indicates that a {@link User} exists, but the {@link BookRepository} indicates that the
+     * {@link Book} not exists.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Add Book - Book not exists, User exists")
+    void testAddNonExistingBookToExistingUser() throws Exception {
+        final var userId = TestHelper.mockUserId();
+        final var bookId = TestHelper.mockBookId();
+        final var mockedUser = Mockito.mock(User.class);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockedUser));
+        when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
+        mockMvc.perform(put(USER_BOOK_ID, userId, bookId))
+            .andExpect(status().isNotFound())
+        ;
+        verify(userRepository, only()).findById(userId);
+        verify(bookRepository, only()).findById(bookId);
+    }
+
+    /**
+     * Tests the API response when adding a {@link Book} to a {@link User} (i.e the controller
+     * method is {@link UserController#addBook(long, long)} ), and the {@link UserRepository}
+     * indicates that a {@link User} exists, and the {@link BookRepository} indicates that a {@link
+     * Book} exists.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Add Book - Book exists, User exists")
+    void testAddExistingBookToExistingUser() throws Exception {
+        final var userId = TestHelper.mockUserId();
+        final var bookId = TestHelper.mockBookId();
+        final var mockedUser = Mockito.mock(User.class);
+        final var mockedBook = Mockito.mock(Book.class);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockedUser));
+        when(userRepository.save(mockedUser)).thenReturn(mockedUser);
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockedBook));
+        mockMvc.perform(put(USER_BOOK_ID, userId, bookId))
+            .andExpect(status().isNoContent())
+        ;
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).save(mockedUser);
+        verifyNoMoreInteractions(userRepository);
+        verify(bookRepository, only()).findById(bookId);
+    }
+
+
 }
