@@ -84,6 +84,18 @@ public class TestHelper {
     }
 
     /**
+     * Mocks a {@link User} with {@link Book}s.
+     *
+     * @param maxAmountOfBooks The max. amount of {@link Book}s the {@link User} can have.
+     * @return The mocked {@link User}.
+     */
+    public static User mockUserWithBooks(final int maxAmountOfBooks) {
+        final var user = mockUser();
+        mockBookSet(maxAmountOfBooks).forEach(user::addBook);
+        return user;
+    }
+
+    /**
      * Mocks a {@link List} of {@link User}s of random size.
      *
      * @param maxSize The max size the {@link List} will have
