@@ -3,10 +3,15 @@ package wolox.training.utils;
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.function.IntFunction;
+import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.Assert;
 import wolox.training.models.Book;
 import wolox.training.models.User;
@@ -38,7 +43,7 @@ public class TestHelper {
      * @return A mocked {@link Book}.
      */
     public static Book mockBook() {
-        return new Book(
+        final var book = new Book(
             Faker.instance().book().genre(),
             Faker.instance().book().author(),
             Faker.instance().internet().image(),
@@ -49,6 +54,8 @@ public class TestHelper {
             Faker.instance().number().numberBetween(1, 2000), // Book has at most 2000 pages
             Faker.instance().code().isbn13()
         );
+        ReflectionTestUtils.setField(book, "id", mockBookId());
+        return book;
     }
 
     /**
@@ -58,7 +65,17 @@ public class TestHelper {
      * @return A mocked {@link List} of {@link Book}s.
      */
     public static List<Book> mockBookList(final int maxSize) {
-        return mocksList(maxSize, ignored -> mockBook());
+        return mockCollection(maxSize, TestHelper::mockBook, LinkedList::new);
+    }
+
+    /**
+     * Mocks a {@link Set} of {@link Book}s of random size.
+     *
+     * @param maxSize The max size the {@link Set} will have
+     * @return A mocked {@link Set} of {@link Book}s.
+     */
+    public static Set<Book> mockBookSet(final int maxSize) {
+        return mockCollection(maxSize, TestHelper::mockBook, HashSet::new);
     }
 
 
@@ -77,7 +94,7 @@ public class TestHelper {
      * @return A mocked {@link User}.
      */
     public static User mockUser() {
-        return new User(
+        final var user = new User(
             Faker.instance().name().username(),
             Faker.instance().name().fullName(),
             LocalDate.ofInstant(
@@ -85,6 +102,8 @@ public class TestHelper {
                 ZoneId.systemDefault()
             )
         );
+        ReflectionTestUtils.setField(user, "id", mockUserId());
+        return user;
     }
 
     /**
@@ -94,23 +113,27 @@ public class TestHelper {
      * @return A mocked {@link List} of {@link User}s.
      */
     public static List<User> mockUserList(final int maxSize) {
-        return mocksList(maxSize, ignored -> mockUser());
+        return mockCollection(maxSize, TestHelper::mockUser, LinkedList::new);
     }
 
     /**
-     * Abstract method to create a {@link List} of mocks of a random size.
+     * Abstract method that creates a {@link Collection} of subtype {@code I} of mocks of type
+     * {@code T}, of a random size.
      *
      * @param maxSize The max size the {@link List} will have.
-     * @param mockGenerator An {@link IntFunction} that receives a position and, based on it,
-     * creates a mock of type {@code T}.
+     * @param mockGenerator A {@link Supplier} that creates a mock of type {@code T}.
      * @param <T> The concrete type of the mock.
-     * @return The created {@link List} of mocks.
+     * @param <I> The concrete type of the {@link Collection}.
+     * @return The created {@link Collection} of mocks.
      */
-    private static <T> List<T> mocksList(final int maxSize, IntFunction<T> mockGenerator) {
+    private static <T, I extends Collection<T>> I mockCollection(
+        final int maxSize,
+        final Supplier<T> mockGenerator,
+        final Supplier<I> iterableGenerator) {
         Assert.isTrue(maxSize > 1, "The max size must be greater than 1");
-        final var size = Faker.instance().number().numberBetween(1, maxSize);
-        return IntStream.range(0, size)
-            .mapToObj(mockGenerator)
-            .collect(Collectors.toList());
+        final var size = Faker.instance().number().numberBetween(8, maxSize);
+        return Stream.generate(mockGenerator)
+            .limit(size)
+            .collect(Collectors.toCollection(iterableGenerator));
     }
 }
