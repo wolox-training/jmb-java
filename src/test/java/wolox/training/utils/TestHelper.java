@@ -1,8 +1,6 @@
 package wolox.training.utils;
 
 import com.github.javafaker.Faker;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -29,32 +27,23 @@ public class TestHelper {
 
 
     /**
-     * Mocks a {@link Book}'s id using {@link Faker} utilities.
-     *
-     * @return A mocked {@link Book} id.
-     */
-    public static long mockBookId() {
-        return Faker.instance().number().numberBetween(Long.MIN_VALUE, Long.MAX_VALUE);
-    }
-
-    /**
      * Mocks a {@link Book} using {@link Faker} utilities.
      *
      * @return A mocked {@link Book}.
      */
     public static Book mockBook() {
         final var book = new Book(
-            Faker.instance().book().genre(),
-            Faker.instance().book().author(),
-            Faker.instance().internet().image(),
-            Faker.instance().book().title(),
-            Faker.instance().book().title(), // Use this as subtitle
-            Faker.instance().book().publisher(),
-            Long.toString(Faker.instance().number().numberBetween(1950, LocalDate.now().getYear())),
-            Faker.instance().number().numberBetween(1, 2000), // Book has at most 2000 pages
-            Faker.instance().code().isbn13()
+            ValuesGenerator.validBookGenre(),
+            ValuesGenerator.validBookAuthor(),
+            ValuesGenerator.validBookImage(),
+            ValuesGenerator.validBookTitle(),
+            ValuesGenerator.validBookSubtitle(),
+            ValuesGenerator.validBookPublisher(),
+            ValuesGenerator.validBookYear(),
+            ValuesGenerator.validBookPages(),
+            ValuesGenerator.validBookIsbn()
         );
-        ReflectionTestUtils.setField(book, "id", mockBookId());
+        ReflectionTestUtils.setField(book, "id", ValuesGenerator.validBookId());
         return book;
     }
 
@@ -80,29 +69,17 @@ public class TestHelper {
 
 
     /**
-     * Mocks a {@link Book}'s id using {@link Faker} utilities.
-     *
-     * @return A mocked {@link Book} id.
-     */
-    public static long mockUserId() {
-        return Faker.instance().number().numberBetween(Long.MIN_VALUE, Long.MAX_VALUE);
-    }
-
-    /**
      * Mocks a {@link User} using {@link Faker} utilities.
      *
      * @return A mocked {@link User}.
      */
     public static User mockUser() {
         final var user = new User(
-            Faker.instance().name().username(),
-            Faker.instance().name().fullName(),
-            LocalDate.ofInstant(
-                Faker.instance().date().birthday().toInstant(),
-                ZoneId.systemDefault()
-            )
+            ValuesGenerator.validUserUsername(),
+            ValuesGenerator.validUserName(),
+            ValuesGenerator.validUserBirthDate()
         );
-        ReflectionTestUtils.setField(user, "id", mockUserId());
+        ReflectionTestUtils.setField(user, "id", ValuesGenerator.validUserId());
         return user;
     }
 
