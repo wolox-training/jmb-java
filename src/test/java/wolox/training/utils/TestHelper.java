@@ -122,6 +122,8 @@ public class TestHelper {
      *
      * @param maxSize The max size the {@link List} will have.
      * @param mockGenerator A {@link Supplier} that creates a mock of type {@code T}.
+     * @param collectionGenerator A {@link Supplier} that creates the {@link Collection} to be
+     * returned after being filled.
      * @param <T> The concrete type of the mock.
      * @param <I> The concrete type of the {@link Collection}.
      * @return The created {@link Collection} of mocks.
@@ -129,11 +131,13 @@ public class TestHelper {
     private static <T, I extends Collection<T>> I mockCollection(
         final int maxSize,
         final Supplier<T> mockGenerator,
-        final Supplier<I> iterableGenerator) {
-        Assert.isTrue(maxSize > 1, "The max size must be greater than 1");
-        final var size = Faker.instance().number().numberBetween(8, maxSize);
+        final Supplier<I> collectionGenerator) {
+        Assert.isTrue(maxSize > 2, "The max size must be greater than 1");
+        Assert.notNull(mockGenerator, "The mock generator must not be null");
+        Assert.notNull(collectionGenerator, "The collection generator must not be null");
+        final var size = Faker.instance().number().numberBetween(2, maxSize);
         return Stream.generate(mockGenerator)
             .limit(size)
-            .collect(Collectors.toCollection(iterableGenerator));
+            .collect(Collectors.toCollection(collectionGenerator));
     }
 }
