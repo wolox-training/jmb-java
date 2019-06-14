@@ -18,9 +18,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -57,7 +59,17 @@ class UserControllerTest {
     /**
      * The API path for a specific {@link User} (located by its id).
      */
-    private static final String USERS_PATH_ID = USERS_PATH + "{id}/";
+    private static final String USERS_PATH_ID = USERS_PATH + "{userId}/";
+
+    /**
+     * The API path for a {@link User}'s {@link wolox.training.models.Book}s
+     */
+    private static final String USER_BOOKS = USERS_PATH_ID + "books/";
+
+    /**
+     * The API path for a {@link User} and {@link wolox.training.models.Book} relationship.
+     */
+    private static final String USER_BOOK_ID = USER_BOOKS + "{bookId}";
 
 
     /**
@@ -260,5 +272,52 @@ class UserControllerTest {
         verify(userRepository, times(1)).existsById(id);
         verify(userRepository, times(1)).deleteById(id);
         verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    @DisplayName("Get User books - User not exists")
+    void testGetUserBooksForNonExistingUser(@Autowired final UserRepository userRepository)
+        throws Exception {
+        final var id = TestHelper.mockUserId();
+        when(userRepository.findById(id)).thenReturn(Optional.empty());
+        mockMvc.perform(get(USERS_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(status().isNotFound())
+        ;
+        verify(userRepository, only()).findById(id);
+    }
+
+    @Test
+    @DisplayName("Get User books - User does not have books")
+    void testGetUserBooksForUserWithoutBooks(@Autowired final UserRepository userRepository)
+        throws Exception {
+        final var id = TestHelper.mockUserId();
+        final var mockedUser = TestHelper.mockUser();
+        when(userRepository.findById(id)).thenReturn(Optional.of(mockedUser));
+        mockMvc.perform(get(USER_BOOKS, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$", hasSize(0)))
+        ;
+        verify(userRepository, only()).findById(id);
+    }
+
+
+    @Test
+    @DisplayName("Get User books - User has books")
+    void testGetUserBooksForUserWithBooks(@Autowired final UserRepository userRepository)
+        throws Exception {
+        final var id = TestHelper.mockUserId();
+        final var mockedUser = Mockito.mock(User.class);
+        final var maxListSize = 10;
+        final var mockedBooks = TestHelper.mockBookSet(maxListSize);
+        when(userRepository.findById(id)).thenReturn(Optional.of(mockedUser));
+        when(mockedUser.getBooks()).thenReturn(mockedBooks);
+        mockMvc.perform(get(USER_BOOKS, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$", hasSize(mockedBooks.size())))
+            .andExpect(WebTestHelper.bookListJsonResultMatcher(new LinkedList<>(mockedBooks)))
+        ;
+        verify(userRepository, only()).findById(id);
     }
 }
