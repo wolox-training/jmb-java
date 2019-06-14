@@ -3,6 +3,7 @@ package wolox.training.web;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,6 +33,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
+import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.models.Book;
 import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
@@ -252,8 +254,8 @@ class UserControllerTest {
 
     /**
      * Tests the API response when deleting a {@link User} by its id (i.e the controller method is
-     * {@link UserController#deleteUser(long)} ), and the {@link UserRepository} indicates there
-     * is no {@link User} with the said id.
+     * {@link UserController#deleteUser(long)} ), and the {@link UserRepository} indicates there is
+     * no {@link User} with the said id.
      *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
@@ -431,13 +433,13 @@ class UserControllerTest {
      * Tests the API response when adding a {@link Book} to a {@link User} (i.e the controller
      * method is {@link UserController#addBook(long, long)} ), and the {@link UserRepository}
      * indicates that a {@link User} exists, and the {@link BookRepository} indicates that a {@link
-     * Book} exists.
+     * Book} exists, and the {@link User} already contains the {@link Book}.
      *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
-    @DisplayName("Add Book - Book exists, User exists")
-    void testAddExistingBookToExistingUser() throws Exception {
+    @DisplayName("Add Book - Book exists, User exists, Book is in User's list")
+    void testAddExistingBookToExistingUserAndItHasIt() throws Exception {
         final var userId = TestHelper.mockUserId();
         final var bookId = TestHelper.mockBookId();
         final var mockedUser = Mockito.mock(User.class);
@@ -445,6 +447,33 @@ class UserControllerTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockedUser));
         when(userRepository.save(mockedUser)).thenReturn(mockedUser);
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockedBook));
+        doThrow(BookAlreadyOwnedException.class).when(mockedUser).addBook(mockedBook);
+        mockMvc.perform(put(USER_BOOK_ID, userId, bookId))
+            .andExpect(status().isConflict())
+        ;
+        verify(userRepository, only()).findById(userId);
+        verify(bookRepository, only()).findById(bookId);
+    }
+
+    /**
+     * Tests the API response when adding a {@link Book} to a {@link User} (i.e the controller
+     * method is {@link UserController#addBook(long, long)} ), and the {@link UserRepository}
+     * indicates that a {@link User} exists, and the {@link BookRepository} indicates that a {@link
+     * Book} exists, and the {@link User} does not contain the {@link Book}.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Add Book - Book exists, User exists, Book is not in User's list")
+    void testAddExistingBookToExistingUserAndDoesNotHaveIt() throws Exception {
+        final var userId = TestHelper.mockUserId();
+        final var bookId = TestHelper.mockBookId();
+        final var mockedUser = Mockito.mock(User.class);
+        final var mockedBook = Mockito.mock(Book.class);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockedUser));
+        when(userRepository.save(mockedUser)).thenReturn(mockedUser);
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockedBook));
+        doNothing().when(mockedUser).addBook(mockedBook);
         mockMvc.perform(put(USER_BOOK_ID, userId, bookId))
             .andExpect(status().isNoContent())
         ;
