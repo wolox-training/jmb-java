@@ -382,7 +382,6 @@ class UserControllerTest {
         verifyZeroInteractions(bookRepository);
     }
 
-
     /**
      * Tests the API response when adding a {@link Book} to a {@link User} (i.e the controller
      * method is {@link UserController#addBook(long, long)} ), and the {@link UserRepository}
@@ -433,21 +432,21 @@ class UserControllerTest {
      * Tests the API response when adding a {@link Book} to a {@link User} (i.e the controller
      * method is {@link UserController#addBook(long, long)} ), and the {@link UserRepository}
      * indicates that a {@link User} exists, and the {@link BookRepository} indicates that a {@link
-     * Book} exists, and the {@link User} already contains the {@link Book}.
+     * Book} exists, and a {@link BookAlreadyOwnedException} is throws (i.e the {@link User} already
+     * contains the {@link Book}).
      *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
-    @DisplayName("Add Book - Book exists, User exists, Book is in User's list")
-    void testAddExistingBookToExistingUserAndItHasIt() throws Exception {
+    @DisplayName("Add Book - Book exists, User exists, BookAlreadyOwnedException is thrown")
+    void testAddExistingBookToExistingUserAndItThrowsBookAlreadyOwnedException() throws Exception {
         final var userId = TestHelper.mockUserId();
         final var bookId = TestHelper.mockBookId();
         final var mockedUser = Mockito.mock(User.class);
         final var mockedBook = Mockito.mock(Book.class);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(mockedUser));
-        when(userRepository.save(mockedUser)).thenReturn(mockedUser);
-        when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockedBook));
         doThrow(BookAlreadyOwnedException.class).when(mockedUser).addBook(mockedBook);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockedUser));
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockedBook));
         mockMvc.perform(put(USER_BOOK_ID, userId, bookId))
             .andExpect(status().isConflict())
         ;
@@ -459,21 +458,23 @@ class UserControllerTest {
      * Tests the API response when adding a {@link Book} to a {@link User} (i.e the controller
      * method is {@link UserController#addBook(long, long)} ), and the {@link UserRepository}
      * indicates that a {@link User} exists, and the {@link BookRepository} indicates that a {@link
-     * Book} exists, and the {@link User} does not contain the {@link Book}.
+     * Book} exists, and the operation finishes without an {@link BookAlreadyOwnedException} being
+     * thrown (i.e {@link User} does not contain the {@link Book}).
      *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
-    @DisplayName("Add Book - Book exists, User exists, Book is not in User's list")
-    void testAddExistingBookToExistingUserAndDoesNotHaveIt() throws Exception {
+    @DisplayName("Add Book - Book exists, User exists, BookAlreadyOwnedException is not thrown")
+    void testAddExistingBookToExistingUserAndBookAlreadyOwnedExceptionIsNotThrown()
+        throws Exception {
         final var userId = TestHelper.mockUserId();
         final var bookId = TestHelper.mockBookId();
         final var mockedUser = Mockito.mock(User.class);
         final var mockedBook = Mockito.mock(Book.class);
+        doNothing().when(mockedUser).addBook(mockedBook);
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockedUser));
         when(userRepository.save(mockedUser)).thenReturn(mockedUser);
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockedBook));
-        doNothing().when(mockedUser).addBook(mockedBook);
         mockMvc.perform(put(USER_BOOK_ID, userId, bookId))
             .andExpect(status().isNoContent())
         ;
@@ -484,4 +485,99 @@ class UserControllerTest {
     }
 
 
+    /**
+     * Tests the API response when removing a {@link Book} to a {@link User} (i.e the controller
+     * method is {@link UserController#removeBook(long, long)} ), and the {@link UserRepository}
+     * indicates that the {@link User} not exists, and the {@link BookRepository} indicates that the
+     * {@link Book} not exists.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Remove Book - Book not exists, User not exists")
+    void testRemoveNonExistingBookToNonExistingUser() throws Exception {
+        final var userId = TestHelper.mockUserId();
+        final var bookId = TestHelper.mockBookId();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
+        mockMvc.perform(delete(USER_BOOK_ID, userId, bookId))
+            .andExpect(status().isNotFound())
+        ;
+        verify(userRepository, only()).findById(userId);
+        verifyZeroInteractions(bookRepository);
+    }
+
+    /**
+     * Tests the API response when removing a {@link Book} to a {@link User} (i.e the controller
+     * method is {@link UserController#removeBook(long, long)} ), and the {@link UserRepository}
+     * indicates that the {@link User} not exists, but the {@link BookRepository} indicates that the
+     * {@link Book} exists.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Remove Book - Book exists, User not exists")
+    void testRemoveExistingBookToNonExistingUser() throws Exception {
+        final var userId = TestHelper.mockUserId();
+        final var bookId = TestHelper.mockBookId();
+        final var mockedBook = Mockito.mock(Book.class);
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockedBook));
+        mockMvc.perform(delete(USER_BOOK_ID, userId, bookId))
+            .andExpect(status().isNotFound())
+        ;
+        verify(userRepository, only()).findById(userId);
+        verifyZeroInteractions(bookRepository);
+    }
+
+    /**
+     * Tests the API response when removing a {@link Book} to a {@link User} (i.e the controller
+     * method is {@link UserController#removeBook(long, long)} ), and the {@link UserRepository}
+     * indicates that a {@link User} exists, but the {@link BookRepository} indicates that the
+     * {@link Book} not exists.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Remove Book - Book not exists, User exists")
+    void testRemoveNonExistingBookToExistingUser() throws Exception {
+        final var userId = TestHelper.mockUserId();
+        final var bookId = TestHelper.mockBookId();
+        final var mockedUser = Mockito.mock(User.class);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockedUser));
+        when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
+        mockMvc.perform(delete(USER_BOOK_ID, userId, bookId))
+            .andExpect(status().isNotFound())
+        ;
+        verify(userRepository, only()).findById(userId);
+        verify(bookRepository, only()).findById(bookId);
+    }
+
+    /**
+     * Tests the API response when removing a {@link Book} to a {@link User} (i.e the controller
+     * method is {@link UserController#removeBook(long, long)} ), and the {@link UserRepository}
+     * indicates that a {@link User} exists, and the {@link BookRepository} indicates that a {@link
+     * Book} exists.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Remove Book - Book exists, User exists")
+    void testRemoveExistingBookToExistingUser() throws Exception {
+        final var userId = TestHelper.mockUserId();
+        final var bookId = TestHelper.mockBookId();
+        final var mockedUser = Mockito.mock(User.class);
+        final var mockedBook = Mockito.mock(Book.class);
+        doNothing().when(mockedUser).removeBook(mockedBook);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockedUser));
+        when(userRepository.save(mockedUser)).thenReturn(mockedUser);
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockedBook));
+        mockMvc.perform(delete(USER_BOOK_ID, userId, bookId))
+            .andExpect(status().isNoContent())
+        ;
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).save(mockedUser);
+        verifyNoMoreInteractions(userRepository);
+        verify(bookRepository, only()).findById(bookId);
+    }
 }
