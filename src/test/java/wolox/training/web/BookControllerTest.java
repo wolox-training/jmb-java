@@ -51,7 +51,6 @@ class BookControllerTest {
      * The API base path for {@link Book}s.
      */
     private static final String BOOKS_PATH = "/api/books/";
-
     /**
      * The API path for a specific {@link Book} (located by its id).
      */
@@ -62,16 +61,23 @@ class BookControllerTest {
      * The {@link MockMvc} instance to perform testing over the {@link BookController}.
      */
     private final MockMvc mockMvc;
+    /**
+     * A mocked {@link BookRepository} which was injected to the {@link BookController}.
+     */
+    private final BookRepository bookRepository;
 
 
     /**
      * Constructor.
      *
      * @param mockMvc The {@link MockMvc} to perform testing over the {@link BookController}.
+     * @param bookRepository A mocked {@link BookRepository} which was injected to the {@link
+     * BookController}.
      */
     @Autowired
-    BookControllerTest(final MockMvc mockMvc) {
+    BookControllerTest(final MockMvc mockMvc, final BookRepository bookRepository) {
         this.mockMvc = mockMvc;
+        this.bookRepository = bookRepository;
     }
 
 
@@ -79,13 +85,11 @@ class BookControllerTest {
      * Tests the API response when requesting all {@link Book}s (i.e using the controller method
      * {@link BookController#getAllBooks()}), and none is returned by the {@link BookRepository}.
      *
-     * @param bookRepository A mocked {@link BookRepository} to be injected to the controller.
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
     @DisplayName("Get all books - Empty")
-    void testGetAllBooksReturningEmptyList(@Autowired final BookRepository bookRepository)
-        throws Exception {
+    void testGetAllBooksReturningEmptyList() throws Exception {
         when(bookRepository.findAll()).thenReturn(Collections.emptyList());
         mockMvc.perform(get(BOOKS_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())
@@ -100,13 +104,11 @@ class BookControllerTest {
      * {@link BookController#getAllBooks()}), and a non-empty {@link Iterable} is returned by the
      * {@link BookRepository}.
      *
-     * @param bookRepository A mocked {@link BookRepository} to be injected to the controller.
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
     @DisplayName("Get all books - Not Empty")
-    void testGetAllBooksReturningNonEmptyList(@Autowired final BookRepository bookRepository)
-        throws Exception {
+    void testGetAllBooksReturningNonEmptyList() throws Exception {
         final var maxListSize = 10;
         final var mockedList = TestHelper.mockBookList(maxListSize);
         when(bookRepository.findAll()).thenReturn(mockedList);
@@ -125,12 +127,11 @@ class BookControllerTest {
      * {@link BookController#getById(long)} ()}), and an empty {@link Optional} is returned by the
      * {@link BookRepository}.
      *
-     * @param bookRepository A mocked {@link BookRepository} to be injected to the controller.
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
     @DisplayName("Get Book by id - Not exists")
-    void testGetNonExistenceBook(@Autowired final BookRepository bookRepository) throws Exception {
+    void testGetNonExistenceBook() throws Exception {
         final var id = TestHelper.mockBookId();
         when(bookRepository.findById(id)).thenReturn(Optional.empty());
         mockMvc.perform(get(BOOK_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -144,12 +145,11 @@ class BookControllerTest {
      * {@link BookController#getById(long)} ()}), and a non empty {@link Optional} is returned by
      * the {@link BookRepository}.
      *
-     * @param bookRepository A mocked {@link BookRepository} to be injected to the controller.
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
     @DisplayName("Get Book by id - Exists")
-    void testGetExistingBook(@Autowired final BookRepository bookRepository) throws Exception {
+    void testGetExistingBook() throws Exception {
         final var id = TestHelper.mockBookId();
         final var mockedBook = TestHelper.mockBook();
         when(bookRepository.findById(id)).thenReturn(Optional.of(mockedBook));
@@ -169,7 +169,7 @@ class BookControllerTest {
      */
     @Test
     @DisplayName("Create Book - Empty body")
-    void testCreateWithNoBody(@Autowired final BookRepository bookRepository) throws Exception {
+    void testCreateWithNoBody() throws Exception {
         mockMvc.perform(
             post(BOOKS_PATH)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -187,8 +187,7 @@ class BookControllerTest {
      */
     @Test
     @DisplayName("Create Book - Invalid arguments")
-    void testCreateWithInvalidArguments(@Autowired final BookRepository bookRepository)
-        throws Exception {
+    void testCreateWithInvalidArguments() throws Exception {
         mockMvc.perform(
             post(BOOKS_PATH)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -206,8 +205,7 @@ class BookControllerTest {
      */
     @Test
     @DisplayName("Create Book - Valid arguments")
-    void testCreateWithValidArguments(@Autowired final BookRepository bookRepository)
-        throws Exception {
+    void testCreateWithValidArguments() throws Exception {
         when(bookRepository.save(any(Book.class))).then(i -> i.getArgument(0));
         mockMvc.perform(
             post(BOOKS_PATH)
@@ -230,8 +228,7 @@ class BookControllerTest {
      */
     @Test
     @DisplayName("Delete Book - Not exists")
-    void testDeleteNonExistingBook(@Autowired final BookRepository bookRepository)
-        throws Exception {
+    void testDeleteNonExistingBook() throws Exception {
         final var id = TestHelper.mockBookId();
         when(bookRepository.existsById(id)).thenReturn(false);
         mockMvc.perform(delete(BOOK_PATH_ID, id))
@@ -248,8 +245,7 @@ class BookControllerTest {
      */
     @Test
     @DisplayName("Delete Book - Exists")
-    void testDeleteExistingBook(@Autowired final BookRepository bookRepository)
-        throws Exception {
+    void testDeleteExistingBook() throws Exception {
         final var id = TestHelper.mockBookId();
         when(bookRepository.existsById(id)).thenReturn(true);
         doNothing().when(bookRepository).deleteById(id);

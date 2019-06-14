@@ -35,6 +35,7 @@ import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
 import wolox.training.repositories.UserRepository;
 import wolox.training.utils.TestHelper;
+import wolox.training.web.controllers.BookController;
 import wolox.training.web.controllers.UserController;
 import wolox.training.web.dtos.UserCreationRequestDto;
 
@@ -55,17 +56,14 @@ class UserControllerTest {
      * The API base path for {@link User}s.
      */
     private static final String USERS_PATH = "/api/users/";
-
     /**
      * The API path for a specific {@link User} (located by its id).
      */
     private static final String USERS_PATH_ID = USERS_PATH + "{userId}/";
-
     /**
      * The API path for a {@link User}'s {@link wolox.training.models.Book}s
      */
     private static final String USER_BOOKS = USERS_PATH_ID + "books/";
-
     /**
      * The API path for a {@link User} and {@link wolox.training.models.Book} relationship.
      */
@@ -76,16 +74,32 @@ class UserControllerTest {
      * The {@link MockMvc} instance to perform testing over the {@link UserController}.
      */
     private final MockMvc mockMvc;
+    /**
+     * A mocked {@link UserRepository} which was injected to the {@link UserController}.
+     */
+    private final UserRepository userRepository;
+    /**
+     * A mocked {@link BookRepository} which was injected to the {@link BookController}.
+     */
+    private final BookRepository bookRepository;
 
 
     /**
      * Constructor.
      *
      * @param mockMvc The {@link MockMvc} to perform testing over the {@link UserController}.
+     * @param userRepository A mocked {@link UserRepository} which was injected to the {@link
+     * UserController}.
+     * @param bookRepository A mocked {@link BookRepository} which was injected to the {@link
+     * BookController}.
      */
     @Autowired
-    UserControllerTest(final MockMvc mockMvc) {
+    UserControllerTest(final MockMvc mockMvc,
+        final UserRepository userRepository,
+        final BookRepository bookRepository) {
         this.mockMvc = mockMvc;
+        this.userRepository = userRepository;
+        this.bookRepository = bookRepository;
     }
 
 
@@ -93,13 +107,11 @@ class UserControllerTest {
      * Tests the API response when requesting all {@link User}s (i.e using the controller method
      * {@link UserController#getAllUsers()}), and none is returned by the {@link UserRepository}.
      *
-     * @param userRepository A mocked {@link UserRepository} to be injected to the controller.
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
     @DisplayName("Get all users - Empty")
-    void testGetAllUsersReturningEmptyList(@Autowired final UserRepository userRepository)
-        throws Exception {
+    void testGetAllUsersReturningEmptyList() throws Exception {
         when(userRepository.findAll()).thenReturn(Collections.emptyList());
         mockMvc.perform(get(USERS_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())
@@ -107,6 +119,7 @@ class UserControllerTest {
             .andExpect(jsonPath("$", hasSize(0)))
         ;
         verify(userRepository, only()).findAll();
+        verifyZeroInteractions(bookRepository);
     }
 
     /**
@@ -114,13 +127,11 @@ class UserControllerTest {
      * {@link UserController#getAllUsers()}), and a non-empty {@link Iterable} is returned by the
      * {@link UserRepository}.
      *
-     * @param userRepository A mocked {@link UserRepository} to be injected to the controller.
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
     @DisplayName("Get all users - Not Empty")
-    void testGetAllUsersReturningNonEmptyList(@Autowired final UserRepository userRepository)
-        throws Exception {
+    void testGetAllUsersReturningNonEmptyList() throws Exception {
         final var maxListSize = 10;
         final var mockedList = TestHelper.mockUserList(maxListSize);
         when(userRepository.findAll()).thenReturn(mockedList);
@@ -131,6 +142,7 @@ class UserControllerTest {
             .andExpect(WebTestHelper.userListJsonResultMatcher(mockedList))
         ;
         verify(userRepository, only()).findAll();
+        verifyZeroInteractions(bookRepository);
     }
 
 
@@ -139,18 +151,18 @@ class UserControllerTest {
      * {@link UserController#getById(long)} ()}), and an empty {@link Optional} is returned by the
      * {@link UserRepository}.
      *
-     * @param userRepository A mocked {@link UserRepository} to be injected to the controller.
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
     @DisplayName("Get User by id - Not exists")
-    void testGetNonExistenceUser(@Autowired final UserRepository userRepository) throws Exception {
+    void testGetNonExistenceUser() throws Exception {
         final var id = TestHelper.mockUserId();
         when(userRepository.findById(id)).thenReturn(Optional.empty());
         mockMvc.perform(get(USERS_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isNotFound())
         ;
         verify(userRepository, only()).findById(id);
+        verifyZeroInteractions(bookRepository);
     }
 
     /**
@@ -158,12 +170,11 @@ class UserControllerTest {
      * {@link UserController#getById(long)} ()}), and a non empty {@link Optional} is returned by
      * the {@link UserRepository}.
      *
-     * @param userRepository A mocked {@link UserRepository} to be injected to the controller.
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
     @DisplayName("Get User by id - Exists")
-    void testGetExistingUser(@Autowired final UserRepository userRepository) throws Exception {
+    void testGetExistingUser() throws Exception {
         final var id = TestHelper.mockUserId();
         final var mockedUser = TestHelper.mockUser();
         when(userRepository.findById(id)).thenReturn(Optional.of(mockedUser));
@@ -173,6 +184,7 @@ class UserControllerTest {
             .andExpect(WebTestHelper.userJsonResultMatcher(mockedUser, "$"))
         ;
         verify(userRepository, only()).findById(id);
+        verifyZeroInteractions(bookRepository);
     }
 
     /**
@@ -183,7 +195,7 @@ class UserControllerTest {
      */
     @Test
     @DisplayName("Create User - Empty body")
-    void testCreateWithNoBody(@Autowired final UserRepository userRepository) throws Exception {
+    void testCreateWithNoBody() throws Exception {
         mockMvc.perform(
             post(USERS_PATH)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -191,6 +203,7 @@ class UserControllerTest {
         ).andExpect(status().isBadRequest())
         ;
         verifyZeroInteractions(userRepository);
+        verifyZeroInteractions(bookRepository);
     }
 
     /**
@@ -201,8 +214,7 @@ class UserControllerTest {
      */
     @Test
     @DisplayName("Create User - Invalid arguments")
-    void testCreateWithInvalidArguments(@Autowired final UserRepository userRepository)
-        throws Exception {
+    void testCreateWithInvalidArguments() throws Exception {
         mockMvc.perform(
             post(USERS_PATH)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -210,6 +222,7 @@ class UserControllerTest {
         ).andExpect(status().isBadRequest())
         ;
         verifyZeroInteractions(userRepository);
+        verifyZeroInteractions(bookRepository);
     }
 
     /**
@@ -220,8 +233,7 @@ class UserControllerTest {
      */
     @Test
     @DisplayName("Create User - Valid arguments")
-    void testCreateWithValidArguments(@Autowired final UserRepository userRepository)
-        throws Exception {
+    void testCreateWithValidArguments() throws Exception {
         when(userRepository.save(any(User.class))).then(i -> i.getArgument(0));
         mockMvc.perform(
             post(USERS_PATH)
@@ -233,6 +245,7 @@ class UserControllerTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
         ;
         verify(userRepository, only()).save(any(User.class));
+        verifyZeroInteractions(bookRepository);
     }
 
     /**
@@ -244,13 +257,13 @@ class UserControllerTest {
      */
     @Test
     @DisplayName("Delete User - Not exists")
-    void testDeleteNonExistingUser(@Autowired final UserRepository userRepository)
-        throws Exception {
+    void testDeleteNonExistingUser() throws Exception {
         final var id = TestHelper.mockUserId();
         when(userRepository.existsById(id)).thenReturn(false);
         mockMvc.perform(delete(USERS_PATH_ID, id))
             .andExpect(status().isNoContent());
         verify(userRepository, only()).existsById(id);
+        verifyZeroInteractions(bookRepository);
     }
 
     /**
@@ -262,8 +275,7 @@ class UserControllerTest {
      */
     @Test
     @DisplayName("Delete User - Exists")
-    void testDeleteExistingUser(@Autowired final UserRepository userRepository)
-        throws Exception {
+    void testDeleteExistingUser() throws Exception {
         final var id = TestHelper.mockUserId();
         when(userRepository.existsById(id)).thenReturn(true);
         doNothing().when(userRepository).deleteById(id);
@@ -272,24 +284,24 @@ class UserControllerTest {
         verify(userRepository, times(1)).existsById(id);
         verify(userRepository, times(1)).deleteById(id);
         verifyNoMoreInteractions(userRepository);
+        verifyZeroInteractions(bookRepository);
     }
 
     @Test
     @DisplayName("Get User books - User not exists")
-    void testGetUserBooksForNonExistingUser(@Autowired final UserRepository userRepository)
-        throws Exception {
+    void testGetUserBooksForNonExistingUser() throws Exception {
         final var id = TestHelper.mockUserId();
         when(userRepository.findById(id)).thenReturn(Optional.empty());
         mockMvc.perform(get(USERS_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isNotFound())
         ;
         verify(userRepository, only()).findById(id);
+        verifyZeroInteractions(bookRepository);
     }
 
     @Test
     @DisplayName("Get User books - User does not have books")
-    void testGetUserBooksForUserWithoutBooks(@Autowired final UserRepository userRepository)
-        throws Exception {
+    void testGetUserBooksForUserWithoutBooks() throws Exception {
         final var id = TestHelper.mockUserId();
         final var mockedUser = TestHelper.mockUser();
         when(userRepository.findById(id)).thenReturn(Optional.of(mockedUser));
@@ -299,13 +311,13 @@ class UserControllerTest {
             .andExpect(jsonPath("$", hasSize(0)))
         ;
         verify(userRepository, only()).findById(id);
+        verifyZeroInteractions(bookRepository);
     }
 
 
     @Test
     @DisplayName("Get User books - User has books")
-    void testGetUserBooksForUserWithBooks(@Autowired final UserRepository userRepository)
-        throws Exception {
+    void testGetUserBooksForUserWithBooks() throws Exception {
         final var id = TestHelper.mockUserId();
         final var mockedUser = Mockito.mock(User.class);
         final var maxListSize = 10;
@@ -319,5 +331,6 @@ class UserControllerTest {
             .andExpect(WebTestHelper.bookListJsonResultMatcher(new LinkedList<>(mockedBooks)))
         ;
         verify(userRepository, only()).findById(id);
+        verifyZeroInteractions(bookRepository);
     }
 }
