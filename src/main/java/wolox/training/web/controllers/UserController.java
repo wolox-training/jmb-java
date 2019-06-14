@@ -207,6 +207,7 @@ public class UserController {
                 bookRepository.findById(bookId)
                     .map(book -> {
                         operation.accept(user, book);
+                        userRepository.save(user);
                         return ResponseEntity.noContent().build();
                     }))
             .orElse(ResponseEntity.notFound().build());
