@@ -181,7 +181,7 @@ class BookControllerTest {
 
     /**
      * Tests the API response when creating a {@link Book} (i.e the controller method is {@link
-     * BookController#createBook(BookCreationRequestDto)}), and a the sent JSON has invalid values.
+     * BookController#createBook(BookCreationRequestDto)}), and the sent JSON has invalid values.
      *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
@@ -199,7 +199,7 @@ class BookControllerTest {
 
     /**
      * Tests the API response when creating a {@link Book} (i.e the controller method is {@link
-     * BookController#createBook(BookCreationRequestDto)}), and a the sent JSON has valid values.
+     * BookController#createBook(BookCreationRequestDto)}), and the sent JSON has valid values.
      *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
@@ -221,8 +221,8 @@ class BookControllerTest {
 
     /**
      * Tests the API response when deleting a {@link Book} by its id (i.e the controller method is
-     * {@link BookController#deleteBook(long)} ), and a the {@link BookRepository} indicates there
-     * is no {@link Book} with the said id.
+     * {@link BookController#deleteBook(long)} ), and the {@link BookRepository} indicates there is
+     * no {@link Book} with the said id.
      *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
@@ -238,7 +238,7 @@ class BookControllerTest {
 
     /**
      * Tests the API response when deleting a {@link Book} by its id (i.e the controller method is
-     * {@link BookController#deleteBook(long)} ), and a the {@link BookRepository} indicates that a
+     * {@link BookController#deleteBook(long)} ), and the {@link BookRepository} indicates that a
      * {@link Book} with the said id exists.
      *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
