@@ -17,7 +17,7 @@ class BookTest {
     void testCreateBookWithValidArguments() {
         final var bookMap = ModelsTestHelper.buildBookMap();
         Assertions.assertDoesNotThrow(
-            () -> ModelsTestHelper.buildFromMap(bookMap),
+            () -> ModelsTestHelper.buildBookFromMap(bookMap),
             "Creating a Book with valid values is throwing an unexpected Exception"
         );
     }
@@ -29,7 +29,7 @@ class BookTest {
         bookMap.put(BookField.AUTHOR, null);
         Assertions.assertThrows(
             NullPointerException.class,
-            () -> ModelsTestHelper.buildFromMap(bookMap),
+            () -> ModelsTestHelper.buildBookFromMap(bookMap),
             "Creating a Book with a null author is not throwing a NullPointerException"
         );
     }
@@ -41,7 +41,7 @@ class BookTest {
         bookMap.put(BookField.IMAGE, null);
         Assertions.assertThrows(
             NullPointerException.class,
-            () -> ModelsTestHelper.buildFromMap(bookMap),
+            () -> ModelsTestHelper.buildBookFromMap(bookMap),
             "Creating a Book with a null image is not throwing a NullPointerException"
         );
     }
@@ -53,7 +53,7 @@ class BookTest {
         bookMap.put(BookField.TITLE, null);
         Assertions.assertThrows(
             NullPointerException.class,
-            () -> ModelsTestHelper.buildFromMap(bookMap),
+            () -> ModelsTestHelper.buildBookFromMap(bookMap),
             "Creating a Book with a null title is not throwing a NullPointerException"
         );
     }
@@ -65,7 +65,7 @@ class BookTest {
         bookMap.put(BookField.SUBTITLE, null);
         Assertions.assertThrows(
             NullPointerException.class,
-            () -> ModelsTestHelper.buildFromMap(bookMap),
+            () -> ModelsTestHelper.buildBookFromMap(bookMap),
             "Creating a Book with a null subtitle is not throwing a NullPointerException"
         );
     }
@@ -77,7 +77,7 @@ class BookTest {
         bookMap.put(BookField.PUBLISHER, null);
         Assertions.assertThrows(
             NullPointerException.class,
-            () -> ModelsTestHelper.buildFromMap(bookMap),
+            () -> ModelsTestHelper.buildBookFromMap(bookMap),
             "Creating a Book with a null publisher is not throwing a NullPointerException"
         );
     }
@@ -89,7 +89,7 @@ class BookTest {
         bookMap.put(BookField.YEAR, null);
         Assertions.assertThrows(
             NullPointerException.class,
-            () -> ModelsTestHelper.buildFromMap(bookMap),
+            () -> ModelsTestHelper.buildBookFromMap(bookMap),
             "Creating a Book with a null year is not throwing a NullPointerException"
         );
     }
@@ -106,7 +106,7 @@ class BookTest {
 
         Assertions.assertThrows(
             IllegalArgumentException.class,
-            () -> ModelsTestHelper.buildFromMap(bookMap),
+            () -> ModelsTestHelper.buildBookFromMap(bookMap),
             "Creating a Book with a non positive pages value"
                 + " is not throwing an IllegalArgumentException"
         );
@@ -119,7 +119,7 @@ class BookTest {
         bookMap.put(BookField.ISBN, null);
         Assertions.assertThrows(
             NullPointerException.class,
-            () -> ModelsTestHelper.buildFromMap(bookMap),
+            () -> ModelsTestHelper.buildBookFromMap(bookMap),
             "Creating a Book with a null isbn is not throwing a NullPointerException"
         );
     }

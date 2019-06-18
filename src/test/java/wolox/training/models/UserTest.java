@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import wolox.training.exceptions.BookAlreadyOwnedException;
+import wolox.training.models.ModelsTestHelper.UserField;
 import wolox.training.utils.TestHelper;
-import wolox.training.utils.ValuesGenerator;
 
 /**
  * Testing for the {@link User} class.
@@ -17,12 +17,9 @@ class UserTest {
     @Test
     @DisplayName("Create User - Valid arguments")
     void testCreateUserWithValidArguments() {
+        final var userMap = ModelsTestHelper.buildUserMap();
         Assertions.assertDoesNotThrow(
-            () -> new User(
-                ValuesGenerator.validUserUsername(),
-                ValuesGenerator.validUserName(),
-                ValuesGenerator.validUserBirthDate()
-            ),
+            () -> ModelsTestHelper.buildUserFromMap(userMap),
             "Creating a User with valid values is throwing an unexpected Exception"
         );
     }
@@ -30,13 +27,11 @@ class UserTest {
     @Test
     @DisplayName("Create User - Null username")
     void testCreateUserWithNullUsername() {
+        final var userMap = ModelsTestHelper.buildUserMap();
+        userMap.put(UserField.USERNAME, null);
         Assertions.assertThrows(
             NullPointerException.class,
-            () -> new User(
-                null,
-                ValuesGenerator.validUserName(),
-                ValuesGenerator.validUserBirthDate()
-            ),
+            () -> ModelsTestHelper.buildUserFromMap(userMap),
             "Creating a User with a null username is not throwing a NullPointerException"
         );
     }
@@ -44,27 +39,23 @@ class UserTest {
     @Test
     @DisplayName("Create User - Null name")
     void testCreateUserWithNullName() {
+        final var userMap = ModelsTestHelper.buildUserMap();
+        userMap.put(UserField.NAME, null);
         Assertions.assertThrows(
             NullPointerException.class,
-            () -> new User(
-                ValuesGenerator.validUserUsername(),
-                null,
-                ValuesGenerator.validUserBirthDate()
-            ),
+            () -> ModelsTestHelper.buildUserFromMap(userMap),
             "Creating a User with a null name is not throwing a NullPointerException"
         );
     }
 
     @Test
-    @DisplayName("Create User - Null title")
+    @DisplayName("Create User - Null birth date")
     void testCreateUserWithNullBirthDate() {
+        final var userMap = ModelsTestHelper.buildUserMap();
+        userMap.put(UserField.BIRTH_DATE, null);
         Assertions.assertThrows(
             NullPointerException.class,
-            () -> new User(
-                ValuesGenerator.validUserUsername(),
-                ValuesGenerator.validUserName(),
-                null
-            ),
+            () -> ModelsTestHelper.buildUserFromMap(userMap),
             "Creating a User with a null birth date is not throwing a NullPointerException"
         );
     }
@@ -72,13 +63,11 @@ class UserTest {
     @Test
     @DisplayName("Create User - Today birth date")
     void testCreateUserWithTodayAsBirthDate() {
+        final var userMap = ModelsTestHelper.buildUserMap();
+        userMap.put(UserField.BIRTH_DATE, LocalDate.now());
         Assertions.assertThrows(
             IllegalArgumentException.class,
-            () -> new User(
-                ValuesGenerator.validUserUsername(),
-                ValuesGenerator.validUserName(),
-                LocalDate.now()
-            ),
+            () -> ModelsTestHelper.buildUserFromMap(userMap),
             "Creating a User with a birth date that is today"
                 + " is not throwing an IllegalArgumentException"
         );
@@ -87,13 +76,11 @@ class UserTest {
     @Test
     @DisplayName("Create User - Future birth date")
     void testCreateUserWithFutureAsBirthDate() {
+        final var userMap = ModelsTestHelper.buildUserMap();
+        userMap.put(UserField.BIRTH_DATE, LocalDate.now().plusDays(1));
         Assertions.assertThrows(
             IllegalArgumentException.class,
-            () -> new User(
-                ValuesGenerator.validUserUsername(),
-                ValuesGenerator.validUserName(),
-                LocalDate.now().plusDays(1)
-            ),
+            () -> ModelsTestHelper.buildUserFromMap(userMap),
             "Creating a User with a birth date that is in the future"
                 + " is not throwing an IllegalArgumentException"
         );

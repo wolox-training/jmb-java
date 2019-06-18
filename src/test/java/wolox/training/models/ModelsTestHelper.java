@@ -9,7 +9,11 @@ import static wolox.training.models.ModelsTestHelper.BookField.PUBLISHER;
 import static wolox.training.models.ModelsTestHelper.BookField.SUBTITLE;
 import static wolox.training.models.ModelsTestHelper.BookField.TITLE;
 import static wolox.training.models.ModelsTestHelper.BookField.YEAR;
+import static wolox.training.models.ModelsTestHelper.UserField.BIRTH_DATE;
+import static wolox.training.models.ModelsTestHelper.UserField.NAME;
+import static wolox.training.models.ModelsTestHelper.UserField.USERNAME;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.util.Assert;
@@ -29,7 +33,6 @@ import wolox.training.utils.ValuesGenerator;
      */
     /* package */
     static Map<BookField, Object> buildBookMap() {
-
         final Map<BookField, Object> map = new HashMap<>();
         map.put(GENRE, ValuesGenerator.validBookGenre());
         map.put(AUTHOR, ValuesGenerator.validBookAuthor());
@@ -44,6 +47,23 @@ import wolox.training.utils.ValuesGenerator;
     }
 
     /**
+     * Builds a {@link Map} of {@link UserField} and {@link Object} containing valid values to be
+     * used when creating a {@link User}.
+     *
+     * @return A {@link Map} of {@link UserField} and {@link Object} containing valid values to be
+     * used when creating a {@link User}.
+     */
+    /* package */
+    static Map<UserField, Object> buildUserMap() {
+        final Map<UserField, Object> map = new HashMap<>();
+        map.put(USERNAME, ValuesGenerator.validUserUsername());
+        map.put(NAME, ValuesGenerator.validUserName());
+        map.put(BIRTH_DATE, ValuesGenerator.validUserBirthDate());
+        return map;
+    }
+
+
+    /**
      * Builds a {@link Book} using the values in the given {@code map} of {@link BookField} and
      * {@link Object}, applying the corresponding casts.
      *
@@ -51,7 +71,7 @@ import wolox.training.utils.ValuesGenerator;
      * @return The created {@link Book}.
      */
     /* package */
-    static Book buildFromMap(final Map<BookField, Object> map) {
+    static Book buildBookFromMap(final Map<BookField, Object> map) {
         Assert.isTrue(map.containsKey(GENRE), "The genre is not present");
         Assert.isTrue(map.containsKey(AUTHOR), "The author is not present");
         Assert.isTrue(map.containsKey(IMAGE), "The image is not present");
@@ -74,6 +94,27 @@ import wolox.training.utils.ValuesGenerator;
             (String) map.get(ISBN)
         );
     }
+
+    /**
+     * Builds a {@link User} using the values in the given {@code map} of {@link UserField} and
+     * {@link Object}, applying the corresponding casts.
+     *
+     * @param map The {@link Map} with the values to be used to create the {@link User}.
+     * @return The created {@link User}.
+     */
+    /* package */
+    static User buildUserFromMap(final Map<UserField, Object> map) {
+        Assert.isTrue(map.containsKey(USERNAME), "The username is not present");
+        Assert.isTrue(map.containsKey(NAME), "The name is not present");
+        Assert.isTrue(map.containsKey(BIRTH_DATE), "The date is not present");
+
+        return new User(
+            (String) map.get(USERNAME),
+            (String) map.get(NAME),
+            (LocalDate) map.get(BIRTH_DATE)
+        );
+    }
+
 
     /**
      * An enum containing the {@link Book} fields.
@@ -115,6 +156,25 @@ import wolox.training.utils.ValuesGenerator;
          * The isbn field.
          */
         ISBN,
+        ;
+    }
+
+    /**
+     * An enum containing the {@link Book} fields.
+     */
+    /* package */  enum UserField {
+        /**
+         * The username field.
+         */
+        USERNAME,
+        /**
+         * The name field.
+         */
+        NAME,
+        /**
+         * The birth date field.
+         */
+        BIRTH_DATE,
         ;
     }
 }
