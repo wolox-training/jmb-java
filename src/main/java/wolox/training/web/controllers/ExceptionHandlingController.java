@@ -2,6 +2,7 @@ package wolox.training.web.controllers;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -23,5 +24,11 @@ public class ExceptionHandlingController {
     @ExceptionHandler(BookAlreadyOwnedException.class)
     public ResponseEntity bookAlreadyOwnedExceptionHandler() {
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Constraint violation")
+    public ResponseEntity methodArgumentNotValidException() {
+        return ResponseEntity.badRequest().build();
     }
 }

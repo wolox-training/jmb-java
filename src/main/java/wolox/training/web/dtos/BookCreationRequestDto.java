@@ -3,6 +3,8 @@ package wolox.training.web.dtos;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import lombok.Getter;
 import wolox.training.models.Book;
 
@@ -19,34 +21,43 @@ public class BookCreationRequestDto {
     /**
      * The book's author.
      */
+    @NotNull(message = "The author is missing.")
     private final String author;
     /**
      * The book's image.
      */
+    @NotNull(message = "The image is missing.")
     private final String image;
     /**
      * The book's title.
      */
+    @NotNull(message = "The title is missing.")
     private final String title;
     /**
      * The book's subtitle.
      */
+    @NotNull(message = "The subtitle is missing.")
     private final String subtitle;
     /**
      * The book's publisher.
      */
+    @NotNull(message = "The publisher is missing.")
     private final String publisher;
     /**
      * The year the book was/is/will be published.
      */
+    @NotNull(message = "The year is missing.")
     private final String year;
     /**
      * The amount of pages in the book.
      */
-    private final int pages;
+    @NotNull(message = "The pages value is missing.")
+    @Positive(message = "The pages value must be positive")
+    private final Integer pages;
     /**
      * The book's ISBN.
      */
+    @NotNull(message = "The isbn is missing.")
     private final String isbn;
 
     /**

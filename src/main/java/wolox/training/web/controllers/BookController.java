@@ -1,5 +1,6 @@
 package wolox.training.web.controllers;
 
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.MediaType;
@@ -77,7 +78,7 @@ public class BookController {
      */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Transactional
-    public ResponseEntity<Book> createBook(@RequestBody final BookCreationRequestDto dto) {
+    public ResponseEntity<Book> createBook(@RequestBody @Valid final BookCreationRequestDto dto) {
         final var book = bookRepository.save(
             new Book(
                 dto.getGenre(),

@@ -70,7 +70,7 @@ public class User {
     public User(final String username, final String name, final LocalDate birthDate) {
         assertUsername(username);
         assertName(name);
-        assertBirthData(birthDate);
+        assertBirthDate(birthDate);
         this.id = 0; // Will be set when saving by JPA provider
         this.username = username;
         this.name = name;
@@ -141,7 +141,7 @@ public class User {
      * @throws IllegalArgumentException If the given {@code birthDate} is not in the past (i.e is
      * not before {@link LocalDate#now()}).
      */
-    private static void assertBirthData(final LocalDate birthDate) {
+    private static void assertBirthDate(final LocalDate birthDate) {
         Preconditions.checkNotNull(birthDate, "The birth date must not be null");
         Preconditions.checkArgument(
             birthDate.isBefore(LocalDate.now()),
