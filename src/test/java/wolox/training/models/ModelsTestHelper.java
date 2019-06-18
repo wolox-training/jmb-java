@@ -25,6 +25,12 @@ import wolox.training.utils.ValuesGenerator;
 /* package */ class ModelsTestHelper {
 
     /**
+     * Private constructor to avoid instantiation.
+     */
+    private ModelsTestHelper() {
+    }
+
+    /**
      * Builds a {@link Map} of {@link BookField} and {@link Object} containing valid values to be
      * used when creating a {@link Book}.
      *
