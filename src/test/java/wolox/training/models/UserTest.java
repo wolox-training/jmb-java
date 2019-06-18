@@ -93,6 +93,7 @@ class UserTest {
         final var maxListSize = 10;
         final var user = TestHelper.mockUserWithBooks(maxListSize);
         final var book = TestHelper.mockBook();
+        TestHelper.addId(book);
         Assertions.assertDoesNotThrow(
             () -> user.addBook(book),
             "Adding a book to a User that does not own it"
@@ -121,6 +122,7 @@ class UserTest {
         final var maxListSize = 10;
         final var user = TestHelper.mockUserWithBooks(maxListSize);
         final var book = TestHelper.mockBook();
+        TestHelper.addId(book);
         Assertions.assertDoesNotThrow(
             () -> user.removeBook(book),
             "Removing a book to a User that does not own it"

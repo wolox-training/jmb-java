@@ -182,6 +182,7 @@ class UserControllerTest {
     void testGetExistingUser() throws Exception {
         final var id = ValuesGenerator.validUserId();
         final var mockedUser = TestHelper.mockUser();
+        TestHelper.addId(mockedUser);
         when(userRepository.findById(id)).thenReturn(Optional.of(mockedUser));
         mockMvc.perform(get(USERS_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())
@@ -324,6 +325,7 @@ class UserControllerTest {
     void testGetUserBooksForUserWithoutBooks() throws Exception {
         final var id = ValuesGenerator.validUserId();
         final var mockedUser = TestHelper.mockUser();
+        TestHelper.addId(mockedUser);
         when(userRepository.findById(id)).thenReturn(Optional.of(mockedUser));
         mockMvc.perform(get(USER_BOOKS, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())

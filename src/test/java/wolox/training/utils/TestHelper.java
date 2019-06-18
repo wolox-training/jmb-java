@@ -2,7 +2,6 @@ package wolox.training.utils;
 
 import com.github.javafaker.Faker;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -32,7 +31,7 @@ public class TestHelper {
      * @return A mocked {@link Book}.
      */
     public static Book mockBook() {
-        final var book = new Book(
+        return new Book(
             ValuesGenerator.validBookGenre(),
             ValuesGenerator.validBookAuthor(),
             ValuesGenerator.validBookImage(),
@@ -43,9 +42,8 @@ public class TestHelper {
             ValuesGenerator.validBookPages(),
             ValuesGenerator.validBookIsbn()
         );
-        ReflectionTestUtils.setField(book, "id", ValuesGenerator.validBookId());
-        return book;
     }
+
 
     /**
      * Mocks a {@link List} of {@link Book}s of random size.
@@ -64,9 +62,12 @@ public class TestHelper {
      * @return A mocked {@link Set} of {@link Book}s.
      */
     public static Set<Book> mockBookSet(final int maxSize) {
-        return mockCollection(maxSize, TestHelper::mockBook, HashSet::new);
+        return mockBookList(maxSize)
+            .stream()
+            .peek(TestHelper::addId)
+            .collect(Collectors.toSet())
+            ;
     }
-
 
     /**
      * Mocks a {@link User} using {@link Faker} utilities.
@@ -74,14 +75,13 @@ public class TestHelper {
      * @return A mocked {@link User}.
      */
     public static User mockUser() {
-        final var user = new User(
+        return new User(
             ValuesGenerator.validUserUsername(),
             ValuesGenerator.validUserName(),
             ValuesGenerator.validUserBirthDate()
         );
-        ReflectionTestUtils.setField(user, "id", ValuesGenerator.validUserId());
-        return user;
     }
+
 
     /**
      * Mocks a {@link User} with {@link Book}s.
@@ -128,5 +128,32 @@ public class TestHelper {
         return Stream.generate(mockGenerator)
             .limit(size)
             .collect(Collectors.toCollection(collectionGenerator));
+    }
+
+    /**
+     * Adds an id to the given {@code book}.
+     *
+     * @param book The {@link Book} to which an id will be added.
+     * @implNote This method uses reflection to access the {@link Book}'s id field.
+     */
+    public static void addId(final Book book) {
+        addId(book, "id", ValuesGenerator::validBookId);
+    }
+
+    /**
+     * Adds an id to the given {@code user}.
+     *
+     * @param user The {@link User} to which an id will be added.
+     * @implNote This method uses reflection to access the {@link User}'s id field.
+     */
+    public static void addId(final User user) {
+        addId(user, "id", ValuesGenerator::validUserId);
+    }
+
+    private static <T, ID> void addId(
+        final T entity,
+        final String idFieldName,
+        final Supplier<ID> idSupplier) {
+        ReflectionTestUtils.setField(entity, idFieldName, idSupplier.get());
     }
 }

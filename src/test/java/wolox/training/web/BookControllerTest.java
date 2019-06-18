@@ -112,6 +112,7 @@ class BookControllerTest {
     void testGetAllBooksReturningNonEmptyList() throws Exception {
         final var maxListSize = 10;
         final var mockedList = TestHelper.mockBookList(maxListSize);
+        mockedList.forEach(TestHelper::addId);
         when(bookRepository.findAll()).thenReturn(mockedList);
         mockMvc.perform(get(BOOKS_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())
@@ -153,6 +154,7 @@ class BookControllerTest {
     void testGetExistingBook() throws Exception {
         final var id = ValuesGenerator.validBookId();
         final var mockedBook = TestHelper.mockBook();
+        TestHelper.addId(mockedBook);
         when(bookRepository.findById(id)).thenReturn(Optional.of(mockedBook));
         mockMvc.perform(get(BOOK_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isOk())
