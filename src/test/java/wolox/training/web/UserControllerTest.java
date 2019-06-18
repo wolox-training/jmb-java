@@ -39,6 +39,7 @@ import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
 import wolox.training.repositories.UserRepository;
 import wolox.training.utils.TestHelper;
+import wolox.training.utils.ValuesGenerator;
 import wolox.training.web.controllers.BookController;
 import wolox.training.web.controllers.UserController;
 import wolox.training.web.dtos.UserCreationRequestDto;
@@ -160,7 +161,7 @@ class UserControllerTest {
     @Test
     @DisplayName("Get User by id - Not exists")
     void testGetNonExistenceUser() throws Exception {
-        final var id = TestHelper.mockUserId();
+        final var id = ValuesGenerator.validUserId();
         when(userRepository.findById(id)).thenReturn(Optional.empty());
         mockMvc.perform(get(USERS_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isNotFound())
@@ -179,7 +180,7 @@ class UserControllerTest {
     @Test
     @DisplayName("Get User by id - Exists")
     void testGetExistingUser() throws Exception {
-        final var id = TestHelper.mockUserId();
+        final var id = ValuesGenerator.validUserId();
         final var mockedUser = TestHelper.mockUser();
         when(userRepository.findById(id)).thenReturn(Optional.of(mockedUser));
         mockMvc.perform(get(USERS_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -262,7 +263,7 @@ class UserControllerTest {
     @Test
     @DisplayName("Delete User - Not exists")
     void testDeleteNonExistingUser() throws Exception {
-        final var id = TestHelper.mockUserId();
+        final var id = ValuesGenerator.validUserId();
         when(userRepository.existsById(id)).thenReturn(false);
         mockMvc.perform(delete(USERS_PATH_ID, id))
             .andExpect(status().isNoContent());
@@ -280,7 +281,7 @@ class UserControllerTest {
     @Test
     @DisplayName("Delete User - Exists")
     void testDeleteExistingUser() throws Exception {
-        final var id = TestHelper.mockUserId();
+        final var id = ValuesGenerator.validUserId();
         when(userRepository.existsById(id)).thenReturn(true);
         doNothing().when(userRepository).deleteById(id);
         mockMvc.perform(delete(USERS_PATH_ID, id))
@@ -302,7 +303,7 @@ class UserControllerTest {
     @Test
     @DisplayName("Get User books - User not exists")
     void testGetUserBooksForNonExistingUser() throws Exception {
-        final var id = TestHelper.mockUserId();
+        final var id = ValuesGenerator.validUserId();
         when(userRepository.findById(id)).thenReturn(Optional.empty());
         mockMvc.perform(get(USERS_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isNotFound())
@@ -321,7 +322,7 @@ class UserControllerTest {
     @Test
     @DisplayName("Get User books - User does not have books")
     void testGetUserBooksForUserWithoutBooks() throws Exception {
-        final var id = TestHelper.mockUserId();
+        final var id = ValuesGenerator.validUserId();
         final var mockedUser = TestHelper.mockUser();
         when(userRepository.findById(id)).thenReturn(Optional.of(mockedUser));
         mockMvc.perform(get(USER_BOOKS, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -343,7 +344,7 @@ class UserControllerTest {
     @Test
     @DisplayName("Get User books - User has books")
     void testGetUserBooksForUserWithBooks() throws Exception {
-        final var id = TestHelper.mockUserId();
+        final var id = ValuesGenerator.validUserId();
         final var mockedUser = Mockito.mock(User.class);
         final var maxListSize = 10;
         final var mockedBooks = TestHelper.mockBookSet(maxListSize);
@@ -371,8 +372,8 @@ class UserControllerTest {
     @Test
     @DisplayName("Add Book - Book not exists, User not exists")
     void testAddNonExistingBookToNonExistingUser() throws Exception {
-        final var userId = TestHelper.mockUserId();
-        final var bookId = TestHelper.mockBookId();
+        final var userId = ValuesGenerator.validUserId();
+        final var bookId = ValuesGenerator.validBookId();
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
         mockMvc.perform(put(USER_BOOK_ID, userId, bookId))
@@ -393,8 +394,8 @@ class UserControllerTest {
     @Test
     @DisplayName("Add Book - Book exists, User not exists")
     void testAddExistingBookToNonExistingUser() throws Exception {
-        final var userId = TestHelper.mockUserId();
-        final var bookId = TestHelper.mockBookId();
+        final var userId = ValuesGenerator.validUserId();
+        final var bookId = ValuesGenerator.validBookId();
         final var mockedBook = Mockito.mock(Book.class);
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockedBook));
@@ -416,8 +417,8 @@ class UserControllerTest {
     @Test
     @DisplayName("Add Book - Book not exists, User exists")
     void testAddNonExistingBookToExistingUser() throws Exception {
-        final var userId = TestHelper.mockUserId();
-        final var bookId = TestHelper.mockBookId();
+        final var userId = ValuesGenerator.validUserId();
+        final var bookId = ValuesGenerator.validBookId();
         final var mockedUser = Mockito.mock(User.class);
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockedUser));
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
@@ -440,8 +441,8 @@ class UserControllerTest {
     @Test
     @DisplayName("Add Book - Book exists, User exists, BookAlreadyOwnedException is thrown")
     void testAddExistingBookToExistingUserAndItThrowsBookAlreadyOwnedException() throws Exception {
-        final var userId = TestHelper.mockUserId();
-        final var bookId = TestHelper.mockBookId();
+        final var userId = ValuesGenerator.validUserId();
+        final var bookId = ValuesGenerator.validBookId();
         final var mockedUser = Mockito.mock(User.class);
         final var mockedBook = Mockito.mock(Book.class);
         doThrow(BookAlreadyOwnedException.class).when(mockedUser).addBook(mockedBook);
@@ -467,8 +468,8 @@ class UserControllerTest {
     @DisplayName("Add Book - Book exists, User exists, BookAlreadyOwnedException is not thrown")
     void testAddExistingBookToExistingUserAndBookAlreadyOwnedExceptionIsNotThrown()
         throws Exception {
-        final var userId = TestHelper.mockUserId();
-        final var bookId = TestHelper.mockBookId();
+        final var userId = ValuesGenerator.validUserId();
+        final var bookId = ValuesGenerator.validBookId();
         final var mockedUser = Mockito.mock(User.class);
         final var mockedBook = Mockito.mock(Book.class);
         doNothing().when(mockedUser).addBook(mockedBook);
@@ -496,8 +497,8 @@ class UserControllerTest {
     @Test
     @DisplayName("Remove Book - Book not exists, User not exists")
     void testRemoveNonExistingBookToNonExistingUser() throws Exception {
-        final var userId = TestHelper.mockUserId();
-        final var bookId = TestHelper.mockBookId();
+        final var userId = ValuesGenerator.validUserId();
+        final var bookId = ValuesGenerator.validBookId();
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
         mockMvc.perform(delete(USER_BOOK_ID, userId, bookId))
@@ -518,8 +519,8 @@ class UserControllerTest {
     @Test
     @DisplayName("Remove Book - Book exists, User not exists")
     void testRemoveExistingBookToNonExistingUser() throws Exception {
-        final var userId = TestHelper.mockUserId();
-        final var bookId = TestHelper.mockBookId();
+        final var userId = ValuesGenerator.validUserId();
+        final var bookId = ValuesGenerator.validBookId();
         final var mockedBook = Mockito.mock(Book.class);
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockedBook));
@@ -541,8 +542,8 @@ class UserControllerTest {
     @Test
     @DisplayName("Remove Book - Book not exists, User exists")
     void testRemoveNonExistingBookToExistingUser() throws Exception {
-        final var userId = TestHelper.mockUserId();
-        final var bookId = TestHelper.mockBookId();
+        final var userId = ValuesGenerator.validUserId();
+        final var bookId = ValuesGenerator.validBookId();
         final var mockedUser = Mockito.mock(User.class);
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockedUser));
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
@@ -564,8 +565,8 @@ class UserControllerTest {
     @Test
     @DisplayName("Remove Book - Book exists, User exists")
     void testRemoveExistingBookToExistingUser() throws Exception {
-        final var userId = TestHelper.mockUserId();
-        final var bookId = TestHelper.mockBookId();
+        final var userId = ValuesGenerator.validUserId();
+        final var bookId = ValuesGenerator.validBookId();
         final var mockedUser = Mockito.mock(User.class);
         final var mockedBook = Mockito.mock(Book.class);
         doNothing().when(mockedUser).removeBook(mockedBook);

@@ -32,6 +32,7 @@ import org.springframework.test.web.servlet.RequestBuilder;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
 import wolox.training.utils.TestHelper;
+import wolox.training.utils.ValuesGenerator;
 import wolox.training.web.controllers.BookController;
 import wolox.training.web.dtos.BookCreationRequestDto;
 
@@ -132,7 +133,7 @@ class BookControllerTest {
     @Test
     @DisplayName("Get Book by id - Not exists")
     void testGetNonExistenceBook() throws Exception {
-        final var id = TestHelper.mockBookId();
+        final var id = ValuesGenerator.validBookId();
         when(bookRepository.findById(id)).thenReturn(Optional.empty());
         mockMvc.perform(get(BOOK_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(status().isNotFound())
@@ -150,7 +151,7 @@ class BookControllerTest {
     @Test
     @DisplayName("Get Book by id - Exists")
     void testGetExistingBook() throws Exception {
-        final var id = TestHelper.mockBookId();
+        final var id = ValuesGenerator.validBookId();
         final var mockedBook = TestHelper.mockBook();
         when(bookRepository.findById(id)).thenReturn(Optional.of(mockedBook));
         mockMvc.perform(get(BOOK_PATH_ID, id).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -229,7 +230,7 @@ class BookControllerTest {
     @Test
     @DisplayName("Delete Book - Not exists")
     void testDeleteNonExistingBook() throws Exception {
-        final var id = TestHelper.mockBookId();
+        final var id = ValuesGenerator.validBookId();
         when(bookRepository.existsById(id)).thenReturn(false);
         mockMvc.perform(delete(BOOK_PATH_ID, id))
             .andExpect(status().isNoContent());
@@ -246,7 +247,7 @@ class BookControllerTest {
     @Test
     @DisplayName("Delete Book - Exists")
     void testDeleteExistingBook() throws Exception {
-        final var id = TestHelper.mockBookId();
+        final var id = ValuesGenerator.validBookId();
         when(bookRepository.existsById(id)).thenReturn(true);
         doNothing().when(bookRepository).deleteById(id);
         mockMvc.perform(delete(BOOK_PATH_ID, id))
