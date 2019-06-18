@@ -29,7 +29,7 @@ import wolox.training.web.dtos.UserDownloadDto;
  */
 @RestController
 @Transactional(readOnly = true)
-@RequestMapping(value = "users", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+@RequestMapping(value = "/api/users", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class UserController {
 
     /**
