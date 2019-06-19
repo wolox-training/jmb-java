@@ -1,5 +1,6 @@
 package wolox.training.repositories;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -197,20 +198,62 @@ class UserRepositoryTest {
         final BiFunction<UserRepository, C, Optional<User>> retrievingOperation,
         final Function<User, C> conditionGetter) {
 
-        // Create a transaction manager to manually create a transaction to populate everything
+        // Create a transaction manager to manually create transactions
         final var transactionTemplate = new TransactionTemplate(platformTransactionManager);
+
+        // Sanity check: this method must no be called within a transaction
+        verifyNoTransaction(transactionTemplate);
 
         // Mock books and user
         final var books = TestHelper.mockBookList(10);
         final var user = TestHelper.mockUser();
 
-        // Populate database
-        transactionTemplate.execute(status -> {
-            // First check that this transaction is not withing another transaction
-            Assert.isTrue(
-                status.isNewTransaction(),
-                "The method MUST not be called withing a transaction"
+        // Preparation of database
+        populateDatabase(transactionTemplate, user, books); // This commits: entities are stored
+
+        // The following must be executed in a try-finally block.
+        // Always execute the finally block (even when things go wrong) which clears the database
+        try {
+            final var condition = conditionGetter.apply(user);
+            final var retrievedUser = retrievingOperation.apply(userRepository, condition)
+                .orElseThrow(AssertionFailedError::new);
+
+            // Get the books collection by reflection
+            // (the User class encapsulates the books in an unmodifiable Set so,
+            // if the collection was not initialized, an exception is thrown).
+            final var retrievedBooks = ReflectionTestUtils.getField(retrievedUser, "books");
+
+            // Verify lazy initialization by checking that the books were not initialized.
+            Assertions.assertFalse(
+                Hibernate.isInitialized(retrievedBooks),
+                "A lazy loaded collection was initialized"
             );
+        } finally {
+            // Clears the database
+            // (as stuff does not happen in a transaction that is rolled-back after each test)
+            clearDatabase(transactionTemplate, user, books);
+        }
+
+        // Sanity check: check that the database is empty
+        emptyDatabaseSanityCheck(user, books);
+    }
+
+
+    /**
+     * Populates the database within a transaction.
+     *
+     * @param transactionTemplate The {@link TransactionTemplate} used to create the transaction in
+     * which the database population will occur.
+     * @param user The {@link User} to be added to the database.
+     * @param books The {@link List} of {@link Book}s to be added to the database.
+     * @apiNote This commits
+     */
+    private void populateDatabase(
+        final TransactionTemplate transactionTemplate,
+        final User user,
+        final List<Book> books) {
+
+        transactionTemplate.execute(status -> {
             // First persist books (will give them an id)
             books.forEach(entityManager::persist);
             entityManager.flush();
@@ -222,47 +265,64 @@ class UserRepositoryTest {
 
             return null;
         });
+    }
 
-        // Up to now, entities were stored in the database in an already persisted transaction.
+    /**
+     * Clears the database within a transaction.
+     *
+     * @param transactionTemplate The {@link TransactionTemplate} used to create the transaction in
+     * which the database clear will occur.
+     * @param user The {@link User} to be removed from the database.
+     * @param books The {@link List} of {@link Book}s to be removed from the database.
+     * @apiNote This commits
+     */
+    private void clearDatabase(
+        final TransactionTemplate transactionTemplate,
+        final User user,
+        final List<Book> books) {
 
-        // The following must be executed in a try-finally block.
-        // Always execute the finally block (even when things go wrong) which clears the database
-        // (Note that this method MUST not be called withing a transaction as it needs to
-        // manually create them).
-        try {
-            final var condition = conditionGetter.apply(user);
-            final var retrievedUser = retrievingOperation.apply(userRepository, condition)
-                .orElseThrow(AssertionFailedError::new);
+        transactionTemplate.execute(status -> {
+                entityManager.remove(entityManager.merge(user));
+                books.forEach(book -> entityManager.remove(entityManager.merge(book)));
 
-            // Get the books collection by reflection
-            // (the User class encapsulates the books in an unmodifiable Set so,
-            // if the collection was not initialized, an exception is thrown).
-            final var retrievedBooks = ReflectionTestUtils.getField(retrievedUser, "books");
-            Assertions.assertFalse(
-                Hibernate.isInitialized(retrievedBooks),
-                "A lazy loaded collection was initialized"
-            );
-        } finally {
-            // Clears the database
-            // (as stuff does not happen in a transaction that is rolled-back after each test)
-            transactionTemplate.execute(status -> {
-                    entityManager.remove(entityManager.merge(user));
-                    books.forEach(book -> entityManager.remove(entityManager.merge(book)));
-                    return null;
-                }
-            );
-        }
+                return null;
+            }
+        );
+    }
 
-        // Sanity check: check that the database is empty
-        Assert.isNull(
-            entityManager.find(User.class, user.getId()),
+    /**
+     * Asserts that the given {@code user} and {@code books} are not in the database.
+     *
+     * @param user The {@link User} to be checked.
+     * @param books The {@link List} of {@link Book}s to be checked.
+     */
+    private void emptyDatabaseSanityCheck(final User user, final List<Book> books) {
+        Assert.state(
+            entityManager.find(User.class, user.getId()) == null,
             "Users still in the database"
         );
         books.forEach(
-            book -> Assert.isNull(
-                entityManager.find(Book.class, book.getId()),
+            book -> Assert.state(
+                entityManager.find(Book.class, book.getId()) == null,
                 "Books still in the database"
             )
         );
+    }
+
+    /**
+     * Verifies that there is no transaction in progress.
+     *
+     * @param transactionTemplate The {@link TransactionTemplate} used to start a no-op transaction
+     * in which transaction-in-progress will be checked.
+     */
+    private static void verifyNoTransaction(final TransactionTemplate transactionTemplate) {
+        transactionTemplate.execute(status -> {
+            Assert.state(
+                status.isNewTransaction(),
+                "The method MUST not be called withing a transaction"
+            );
+
+            return null;
+        });
     }
 }
