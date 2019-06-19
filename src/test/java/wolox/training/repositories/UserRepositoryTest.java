@@ -22,6 +22,7 @@ import org.springframework.util.Assert;
 import wolox.training.models.Book;
 import wolox.training.models.User;
 import wolox.training.utils.TestHelper;
+import wolox.training.utils.UserAssertions;
 
 /**
  * Tests for the {@link UserRepository}.
@@ -87,7 +88,7 @@ class UserRepositoryTest {
             )
         );
         // Performs outside of the assertAll as this depends on the previous assertions
-        RepositoriesTestHelper.assertSame(
+        UserAssertions.assertSame(
             savedUser,
             retrievedUser,
             "The user has been saved with different values"
@@ -171,7 +172,7 @@ class UserRepositoryTest {
             conditionGetter,
             entityManager,
             TestHelper::mockUserList,
-            RepositoriesTestHelper::assertSame
+            UserAssertions::assertSame
         );
     }
 
