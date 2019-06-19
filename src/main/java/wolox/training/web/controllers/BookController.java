@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
+import wolox.training.services.open_library.OpenLibraryService;
 import wolox.training.web.dtos.BookCreationRequestDto;
 
 /**
@@ -30,15 +31,26 @@ public class BookController {
      */
     private final BookRepository bookRepository;
 
+    /**
+     * The {@link OpenLibraryService} used to access Open Library to search for {@link Book}s when
+     * it does not exist in the local database.
+     */
+    private final OpenLibraryService openLibraryService;
+
 
     /**
      * Constructor.
      *
      * @param bookRepository The {@link BookRepository} used to read and write {@link Book} data.
+     * @param openLibraryService The {@link OpenLibraryService} used to access Open Library to
+     * search for {@link Book}s when it does not exist in the local database.
      */
     @Autowired
-    public BookController(final BookRepository bookRepository) {
+    public BookController(
+        final BookRepository bookRepository,
+        final OpenLibraryService openLibraryService) {
         this.bookRepository = bookRepository;
+        this.openLibraryService = openLibraryService;
     }
 
 
@@ -59,7 +71,7 @@ public class BookController {
      *
      * @param id The id of the {@link Book} to be retrieved.
      * @return A {@link ResponseEntity} containing the {@link Book} with the given {@code id} if it
-     * exists, or with 404 Not Found {@link ResponseEntity} otherwise.
+     * exists, or with 404 Not Found otherwise.
      */
     @GetMapping("/{id:\\d+}")
     public ResponseEntity<Book> getById(@PathVariable("id") final long id) {
@@ -113,10 +125,22 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
 
-
+    /**
+     * Endpoint for getting a {@link Book} by its isbn.
+     *
+     * @param isbn The isbn of the {@link Book} to be retrieved.
+     * @return A {@link ResponseEntity} containing the {@link Book} with the given {@code isbn} if
+     * it exists (in the local database, or in Open Library), or with 404 Not Found otherwise.
+     * @implNote This method first search the local database for the {@link Book} with the given
+     * {@code isbn}. If it's not found, it searches Open Library (using {@link
+     * OpenLibraryService#bookInfo(String)}). In case it is found there, it persist it for later
+     * retrieval without having to access the external service.
+     */
     @GetMapping("/isbn={isbn:.+}")
+    @Transactional
     public ResponseEntity<Book> searchByIsbn(@PathVariable("isbn") final String isbn) {
         return bookRepository.getFirstByIsbn(isbn)
+            .or(() -> openLibraryService.bookInfo(isbn).map(bookRepository::save))
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
