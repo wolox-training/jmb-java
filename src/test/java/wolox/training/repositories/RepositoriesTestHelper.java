@@ -1,12 +1,15 @@
 package wolox.training.repositories;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.function.Supplier;
 import javax.persistence.EntityManager;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.Repository;
 import wolox.training.models.Book;
 
@@ -21,6 +24,58 @@ import wolox.training.models.Book;
     private RepositoriesTestHelper() {
     }
 
+
+    /**
+     * Abstract saving test.
+     *
+     * @param repository The {@link CrudRepository} to be tested.
+     * @param entityManager An {@link EntityManager} used to prepare the database before testing.
+     * @param entitySupplier A {@link Supplier} that creates an entity to be stored.
+     * @param klass The {@link Class} of the entity.
+     * @param idGetter A {@link Function} that given an entity, returns its id.
+     * @param defaultIdValue The default id value (i.e the id of an entity when it has not been
+     * saved yet).
+     * @param idComparator The comparator of the id.
+     * @param assertSame An {@link Assertion} to check whether the saved and the retrieved entities
+     * are the same (this performs more than equality check, which is done by the {@link
+     * Object#equals(Object)} method, as it also checks other values).
+     * @param <T> The concrete type of the entity.
+     * @param <ID> The concrete type of the id.
+     * @param <R> The concrete type of the {@code repository}.
+     */
+    /* package */
+    static <T, ID, R extends CrudRepository<T, ID>> void testSave(
+        final R repository,
+        final EntityManager entityManager,
+        final Supplier<T> entitySupplier,
+        final Class<T> klass,
+        final Function<T, ID> idGetter,
+        final ID defaultIdValue,
+        final Comparator<ID> idComparator,
+        final Assertion<T> assertSame) {
+
+        final var savedEntity = repository.save(entitySupplier.get());
+        entityManager.flush();
+        final var id = idGetter.apply(savedEntity);
+        final var retrievedEntity = entityManager.find(klass, id);
+
+        Assertions.assertAll(
+            "The saving operation did not perform as expected",
+            () -> Assertions.assertTrue(
+                idComparator.compare(id, defaultIdValue) != 0,
+                "The id has not been set"
+            ),
+            () -> Assertions.assertNotNull(
+                retrievedEntity,
+                "The entity has not been stored"
+            )
+        );
+        assertSame.doAssert(
+            savedEntity,
+            retrievedEntity,
+            "The entity has been saved with different values"
+        );
+    }
 
     /**
      * Abstract test for retrieving operations.
