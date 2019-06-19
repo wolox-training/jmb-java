@@ -85,15 +85,35 @@ class BookRepositoryTest {
     }
 
     /**
-     * Tests that retrieving an existing {@link Book} with the {@link BookRepository#getByAuthor(String)}
+     * Tests that retrieving an existing {@link Book} with the {@link BookRepository#getFirstByAuthor(String)}
      * performs as expected: Returns a non empty {@link java.util.Optional} containing the existing
      * {@link Book} (i.e with the same values).
      */
     @Test
     @DisplayName("Retrieve Book by author")
     void testRetrieveByAuthor() {
-        retrieveTesting(BookRepository::getByAuthor, Book::getAuthor);
+        retrieveTesting(BookRepository::getFirstByAuthor, Book::getAuthor);
     }
+
+    /**
+     * Tests that searching by author does not throw any exception when the database has more than
+     * one {@link Book} with the same author.
+     */
+    @Test
+    @DisplayName("Retrieve Book by author - More than one Book with the same author in the database")
+    void testSeveralBooksWithSameAuthor() {
+        RepositoriesTestHelper.testSeveralInstancesAndJustOneSearch(
+            bookRepository,
+            BookRepository::getFirstByAuthor,
+            Book::getAuthor,
+            entityManager,
+            TestHelper::mockBook,
+            BookRepositoryTest::cloneBook,
+            "An unexpected exception was thrown when retrieving a Book by author"
+                + " when there is more than one Book with the same author in the database"
+        );
+    }
+
 
     /**
      * Abstract test for retrieving operations.
@@ -115,6 +135,26 @@ class BookRepositoryTest {
             entityManager,
             TestHelper::mockBookList,
             BookAssertions::assertSame
+        );
+    }
+
+    /**
+     * Clones the given {@link Book} (i.e creates a new {@link Book} instance using the same values
+     * as the given).
+     *
+     * @return A new instance of the {@link Book}.
+     */
+    private static Book cloneBook(final Book book) {
+        return new Book(
+            book.getGenre(),
+            book.getAuthor(),
+            book.getImage(),
+            book.getTitle(),
+            book.getSubtitle(),
+            book.getPublisher(),
+            book.getYear(),
+            book.getPages(),
+            book.getIsbn()
         );
     }
 }

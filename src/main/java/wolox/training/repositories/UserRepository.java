@@ -18,5 +18,5 @@ public interface UserRepository extends CrudRepository<User, Long> {
      * @return An {@link Optional} containing a {@link User} with the given {@code username} if
      * there is such, or empty otherwise.
      */
-    Optional<User> getByUsername(final String username);
+    Optional<User> getFirstByUsername(final String username);
 }
