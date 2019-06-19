@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import wolox.training.models.Book;
+import wolox.training.utils.BookAssertions;
 import wolox.training.utils.TestHelper;
 
 /**
@@ -76,7 +77,7 @@ class BookRepositoryTest {
             )
         );
         // Performs outside of the assertAll as this depends on the previous assertions
-        RepositoriesTestHelper.assertSame(
+        BookAssertions.assertSame(
             savedBook,
             retrievedBook,
             "The book has been saved with different values"
@@ -124,7 +125,7 @@ class BookRepositoryTest {
             conditionGetter,
             entityManager,
             TestHelper::mockBookList,
-            RepositoriesTestHelper::assertSame
+            BookAssertions::assertSame
         );
     }
 }
