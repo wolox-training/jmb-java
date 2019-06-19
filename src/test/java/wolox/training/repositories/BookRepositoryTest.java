@@ -4,7 +4,6 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.persistence.EntityManager;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,25 +61,15 @@ class BookRepositoryTest {
     @Test
     @DisplayName("Save Book")
     void testSavingABook() {
-        final var savedBook = bookRepository.save(TestHelper.mockBook());
-        entityManager.flush();
-        final var retrievedBook = entityManager.find(Book.class, savedBook.getId());
-        Assertions.assertAll(
-            "The saving operation did not perform as expected",
-            () -> Assertions.assertTrue(
-                savedBook.getId() != 0,
-                "The id has not been set"
-            ),
-            () -> Assertions.assertNotNull(
-                retrievedBook,
-                "The book has not been stored"
-            )
-        );
-        // Performs outside of the assertAll as this depends on the previous assertions
-        BookAssertions.assertSame(
-            savedBook,
-            retrievedBook,
-            "The book has been saved with different values"
+        RepositoriesTestHelper.testSave(
+            bookRepository,
+            entityManager,
+            TestHelper::mockBook,
+            Book.class,
+            Book::getId,
+            0L,
+            Long::compare,
+            BookAssertions::assertSame
         );
     }
 

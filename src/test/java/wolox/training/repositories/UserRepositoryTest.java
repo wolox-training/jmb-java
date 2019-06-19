@@ -73,25 +73,15 @@ class UserRepositoryTest {
     @Test
     @DisplayName("Save User")
     void testSavingAUser() {
-        final var savedUser = userRepository.save(TestHelper.mockUser());
-        entityManager.flush();
-        final var retrievedUser = entityManager.find(User.class, savedUser.getId());
-        Assertions.assertAll(
-            "The saving operation did not perform as expected",
-            () -> Assertions.assertTrue(
-                savedUser.getId() != 0,
-                "The id has not been set"
-            ),
-            () -> Assertions.assertNotNull(
-                retrievedUser,
-                "The user has not been stored"
-            )
-        );
-        // Performs outside of the assertAll as this depends on the previous assertions
-        UserAssertions.assertSame(
-            savedUser,
-            retrievedUser,
-            "The user has been saved with different values"
+        RepositoriesTestHelper.testSave(
+            userRepository,
+            entityManager,
+            TestHelper::mockUser,
+            User.class,
+            User::getId,
+            0L,
+            Long::compare,
+            UserAssertions::assertSame
         );
     }
 
