@@ -61,7 +61,7 @@ public class BookController {
      * @return A {@link ResponseEntity} containing the {@link Book} with the given {@code id} if it
      * exists, or with 404 Not Found {@link ResponseEntity} otherwise.
      */
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<Book> getById(@PathVariable("id") final long id) {
         return bookRepository.findById(id)
             .map(ResponseEntity::ok)
@@ -104,12 +104,20 @@ public class BookController {
      * @param id The id of the {@link Book} to be deleted.
      * @return A 204 No Content {@link ResponseEntity}.
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     @Transactional
     public ResponseEntity deleteBook(@PathVariable("id") final long id) {
         if (bookRepository.existsById(id)) {
             bookRepository.deleteById(id);
         }
         return ResponseEntity.noContent().build();
+    }
+
+
+    @GetMapping("/isbn={isbn:.+}")
+    public ResponseEntity<Book> searchByIsbn(@PathVariable("isbn") final String isbn) {
+        return bookRepository.getFirstByIsbn(isbn)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 }
