@@ -1,5 +1,6 @@
 package wolox.training.web.controllers;
 
+import javax.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,7 +27,7 @@ public class ExceptionHandlingController {
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class})
     @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Constraint violation")
     public ResponseEntity methodArgumentNotValidException() {
         return ResponseEntity.badRequest().build();

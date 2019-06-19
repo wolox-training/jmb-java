@@ -1,11 +1,13 @@
 package wolox.training.web.controllers;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +26,7 @@ import wolox.training.web.dtos.BookCreationRequestDto;
 @RestController
 @RequestMapping(value = "/api/books", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Transactional(readOnly = true)
+@Validated
 public class BookController {
 
     /**
@@ -74,7 +77,7 @@ public class BookController {
      * exists, or with 404 Not Found otherwise.
      */
     @GetMapping("/{id:\\d+}")
-    public ResponseEntity<Book> getById(@PathVariable("id") final long id) {
+    public ResponseEntity<Book> getById(@PathVariable("id") @Positive final long id) {
         return bookRepository.findById(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -118,7 +121,7 @@ public class BookController {
      */
     @DeleteMapping("/{id:\\d+}")
     @Transactional
-    public ResponseEntity deleteBook(@PathVariable("id") final long id) {
+    public ResponseEntity deleteBook(@PathVariable("id") @Positive final long id) {
         if (bookRepository.existsById(id)) {
             bookRepository.deleteById(id);
         }
