@@ -97,14 +97,33 @@ class UserRepositoryTest {
     }
 
     /**
-     * Tests that retrieving an existing {@link User} with the {@link UserRepository#getByUsername(String)}
+     * Tests that retrieving an existing {@link User} with the {@link UserRepository#getFirstByUsername(String)}
      * performs as expected: Returns a non empty {@link Optional} containing the existing {@link
      * User} (i.e with the same values).
      */
     @Test
     @DisplayName("Retrieve User by username")
     void testRetrieveByUsername() {
-        retrieveTesting(UserRepository::getByUsername, User::getUsername);
+        retrieveTesting(UserRepository::getFirstByUsername, User::getUsername);
+    }
+
+    /**
+     * Tests that searching by username does not throw any exception when the database has more than
+     * one {@link User} with the same username.
+     */
+    @Test
+    @DisplayName("Retrieve User by username - More than one User with same username in the database")
+    void testSeveralUsersWithSameUsername() {
+        RepositoriesTestHelper.testSeveralInstancesAndJustOneSearch(
+            userRepository,
+            UserRepository::getFirstByUsername,
+            User::getUsername,
+            entityManager,
+            TestHelper::mockUser,
+            UserRepositoryTest::cloneUser,
+            "An unexpected exception was thrown when retrieving a User by username"
+                + " when there is more than one User with the same username in the database"
+        );
     }
 
     /**
@@ -138,7 +157,7 @@ class UserRepositoryTest {
         @Autowired final PlatformTransactionManager platformTransactionManager) {
         testLazyInitialization(
             platformTransactionManager,
-            UserRepository::getByUsername,
+            UserRepository::getFirstByUsername,
             User::getUsername
         );
     }
@@ -315,5 +334,19 @@ class UserRepositoryTest {
 
             return null;
         });
+    }
+
+    /**
+     * Clones the given {@link User} (i.e creates a new {@link User} instance using the same values
+     * as the given).
+     *
+     * @return A new instance of the {@link User}.
+     */
+    private static User cloneUser(final User user) {
+        return new User(
+            user.getUsername(),
+            user.getName(),
+            user.getBirthDate()
+        );
     }
 }

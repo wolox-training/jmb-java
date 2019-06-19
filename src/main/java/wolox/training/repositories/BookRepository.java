@@ -18,5 +18,5 @@ public interface BookRepository extends CrudRepository<Book, Long> {
      * @return An {@link Optional} containing a {@link Book} of the given {@code author} if there is
      * such, or empty otherwise.
      */
-    Optional<Book> getByAuthor(final String author);
+    Optional<Book> getFirstByAuthor(final String author);
 }
