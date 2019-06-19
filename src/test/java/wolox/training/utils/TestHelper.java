@@ -121,7 +121,7 @@ public class TestHelper {
         final int maxSize,
         final Supplier<T> mockGenerator,
         final Supplier<I> collectionGenerator) {
-        Assert.isTrue(maxSize > 2, "The max size must be greater than 1");
+        Assert.isTrue(maxSize > 2, "The max size must be greater than 2");
         Assert.notNull(mockGenerator, "The mock generator must not be null");
         Assert.notNull(collectionGenerator, "The collection generator must not be null");
         final var size = Faker.instance().number().numberBetween(2, maxSize);
