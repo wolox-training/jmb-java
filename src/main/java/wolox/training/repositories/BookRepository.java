@@ -19,4 +19,13 @@ public interface BookRepository extends CrudRepository<Book, Long> {
      * such, or empty otherwise.
      */
     Optional<Book> getFirstByAuthor(final String author);
+
+    /**
+     * Returns one {@link Book} with the given {@code isbn}.
+     *
+     * @param isbn The isbn used to search for a {@link Book}.
+     * @return An {@link Optional} containing a {@link Book} with the given {@code isbn} if there is
+     * such, or empty otherwise.
+     */
+    Optional<Book> getFirstByIsbn(final String isbn);
 }

@@ -24,7 +24,7 @@ public class ValuesGenerator {
      * @return A mocked {@link Book} id.
      */
     public static long validBookId() {
-        return Faker.instance().number().numberBetween(Long.MIN_VALUE, Long.MAX_VALUE);
+        return Faker.instance().number().numberBetween(1, Long.MAX_VALUE);
     }
 
     /**
@@ -116,7 +116,7 @@ public class ValuesGenerator {
      * @return A mocked {@link Book} id.
      */
     public static long validUserId() {
-        return Faker.instance().number().numberBetween(Long.MIN_VALUE, Long.MAX_VALUE);
+        return Faker.instance().number().numberBetween(1, Long.MAX_VALUE);
     }
 
     /**
