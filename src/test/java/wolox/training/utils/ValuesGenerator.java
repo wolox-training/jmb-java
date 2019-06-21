@@ -134,6 +134,21 @@ public class ValuesGenerator {
     }
 
     /**
+     * Mocks a {@link User}0s password using {@link Faker} utilities.
+     * @return A mocked {@link User} password.
+     */
+    public static String validPassword() {
+        final var passwordWithoutDigits = Faker.instance().internet().password(
+            User.PASSWORD_MIN_LENGTH,
+            2 * User.PASSWORD_MIN_LENGTH,
+            true,
+            true
+        );
+        final var digit = Faker.instance().number().digit();
+        return passwordWithoutDigits + digit;
+    }
+
+    /**
      * Mocks a {@link User}'s username using {@link Faker} utilities.
      *
      * @return A mocked {@link User} username.

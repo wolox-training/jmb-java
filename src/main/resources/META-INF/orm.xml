@@ -54,6 +54,9 @@
       <basic name="username">
         <column name="username" nullable="false" insertable="true" updatable="false"/>
       </basic>
+      <basic name="hashedPassword">
+        <column name="password" nullable="false" insertable="true" updatable="true"/>
+      </basic>
       <basic name="name">
         <column name="name" nullable="false" insertable="true" updatable="false"/>
       </basic>
