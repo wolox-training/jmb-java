@@ -31,6 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
+import wolox.training.services.open_library.OpenLibraryService;
 import wolox.training.utils.TestHelper;
 import wolox.training.utils.ValuesGenerator;
 import wolox.training.web.controllers.BookController;
@@ -45,6 +46,7 @@ import wolox.training.web.dtos.BookCreationRequestDto;
 })
 @MockBeans({
     @MockBean(BookRepository.class),
+    @MockBean(OpenLibraryService.class),
 })
 class BookControllerTest {
 
