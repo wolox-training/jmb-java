@@ -29,6 +29,7 @@ dependencies {
     testCompile('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'junit', module: 'junit'
     }
+    testCompile('org.springframework.security:spring-security-test')
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
     testCompile 'com.github.javafaker:javafaker:0.17.2'

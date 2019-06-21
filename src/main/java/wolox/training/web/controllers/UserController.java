@@ -102,17 +102,13 @@ public class UserController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<UserDownloadDto> createUser(
         @RequestBody @Valid final UserCreationRequestDto dto) {
-        final var user = userRepository.save(
-            new User(
-                dto.getUsername(),
-                dto.getName(),
-                dto.getBirthDate()
-            )
-        );
+        final var user = new User(dto.getUsername(), dto.getName(), dto.getBirthDate());
+        user.changePassword(dto.getPassword());
+        final var savedUser = userRepository.save(user);
         final var uri = ControllerLinkBuilder
-            .linkTo(ControllerLinkBuilder.methodOn(UserController.class).getById(user.getId()))
+            .linkTo(ControllerLinkBuilder.methodOn(UserController.class).getById(savedUser.getId()))
             .toUri();
-        return ResponseEntity.created(uri).body(new UserDownloadDto(user));
+        return ResponseEntity.created(uri).body(new UserDownloadDto(savedUser));
     }
 
     /**
