@@ -6,6 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import wolox.training.exceptions.AuthenticationException;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 
 /**
@@ -30,5 +31,11 @@ public class ExceptionHandlingController {
     @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Constraint violation")
     public ResponseEntity methodArgumentNotValidException() {
         return ResponseEntity.badRequest().build();
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(value = HttpStatus.UNAUTHORIZED, reason = "Unauthorized")
+    public ResponseEntity authenticationExceptionHandler() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 }
