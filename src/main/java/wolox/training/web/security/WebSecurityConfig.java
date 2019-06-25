@@ -3,6 +3,7 @@ package wolox.training.web.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,6 +22,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      * The {@link JwtAuthenticationProvider} used to process {@link PreAuthenticatedJwtToken}s.
      */
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
+    /**
+     * A {@link RestAuthenticationEntryPoint} to return a 401 Unauthorized in case of failing the
+     * authentication.
+     */
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
 
     /**
@@ -30,8 +36,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      * PreAuthenticatedJwtToken}s.
      */
     @Autowired
-    public WebSecurityConfig(final JwtAuthenticationProvider jwtAuthenticationProvider) {
+    public WebSecurityConfig(final JwtAuthenticationProvider jwtAuthenticationProvider,
+        final RestAuthenticationEntryPoint restAuthenticationEntryPoint) {
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
+        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
     }
 
 
@@ -51,9 +59,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .logout().disable()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
-            .authorizeRequests().anyRequest().permitAll()
+            .authorizeRequests()
+            .antMatchers(HttpMethod.POST, "/api/tokens").permitAll()
+            .antMatchers(HttpMethod.POST, "/api/users").permitAll()
+            .antMatchers(HttpMethod.POST, "/api/books").permitAll()
+            .anyRequest().authenticated()
             .and()
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling().authenticationEntryPoint(restAuthenticationEntryPoint)
         ;
     }
 
