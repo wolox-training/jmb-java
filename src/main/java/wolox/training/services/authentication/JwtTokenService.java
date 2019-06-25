@@ -14,11 +14,12 @@ public interface JwtTokenService {
      * @param username The {@link wolox.training.models.User}'s username.
      * @param password The {@link wolox.training.models.User}'s password.
      * @return A JWT for the {@link wolox.training.models.User} with the given {@code username}.
+     * Will be wrapped into a {@link RawTokenContainer}.
      * @throws wolox.training.exceptions.AuthenticationException If there is no {@link
      * wolox.training.models.User} with the given {@code username}, or if the {@code password} does
      * not match.
      */
-    String issueToken(final String username, final String password);
+    RawTokenContainer issueToken(final String username, final String password);
 
     /**
      * Decodes the given {@code rawToken} trying to interpret it as a JWT. If it can be decoded,
@@ -40,6 +41,7 @@ public interface JwtTokenService {
      * Blacklists the token with the given {@code id}.
      *
      * @param id The id of the token to be blacklisted.
+     * @apiNote This is an idempotent operation.
      */
     void blacklistToken(final String id);
 }

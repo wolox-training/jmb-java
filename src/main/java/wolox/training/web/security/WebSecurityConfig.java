@@ -50,8 +50,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .rememberMe().disable()
             .logout().disable()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//            .and()
-//            .authorizeRequests().anyRequest().anonymous()
+            .and()
+            .authorizeRequests().anyRequest().permitAll()
             .and()
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
         ;

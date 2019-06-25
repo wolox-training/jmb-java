@@ -73,12 +73,12 @@ public class JwtTokenServiceImpl implements JwtTokenService {
     }
 
     @Override
-    public String issueToken(final String username, final String password) {
+    public RawTokenContainer issueToken(final String username, final String password) {
         return userRepository
             .getFirstByUsername(username)
             .filter(user -> user.passwordMatches(password))
             .map(JwtTokenServiceImpl::buildTokenDataForUser)
-            .map(jwtTokenEncoder::encode)
+            .map(data -> new RawTokenContainer(data.getId(), jwtTokenEncoder.encode(data)))
             .orElseThrow(() -> new AuthenticationException("Passwords don't match"));
     }
 
@@ -102,6 +102,9 @@ public class JwtTokenServiceImpl implements JwtTokenService {
     @Override
     @Transactional
     public void blacklistToken(final String id) {
+        if (blacklistedJwtTokenRepository.existsById(id)) {
+            return;
+        }
         blacklistedJwtTokenRepository.save(new BlacklistedJwtToken(id));
     }
 
