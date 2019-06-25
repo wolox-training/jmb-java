@@ -75,11 +75,14 @@ public class User {
      */
     @Getter
     private final LocalDate birthDate;
-
     /**
      * The {@link Book}s owned by this user.
      */
     private final Set<Book> books;
+    /**
+     * The roles this user were granted.
+     */
+    private final Set<String> roles;
 
 
     /**
@@ -93,6 +96,7 @@ public class User {
         this.name = null;
         this.birthDate = null;
         this.books = new HashSet<>();
+        this.roles = new HashSet<>();
     }
 
     /**
@@ -114,6 +118,7 @@ public class User {
         this.name = name;
         this.birthDate = birthDate;
         this.books = new HashSet<>();
+        this.roles = Set.of("USER");
     }
 
 
@@ -124,6 +129,15 @@ public class User {
      */
     public Set<Book> getBooks() {
         return Collections.unmodifiableSet(books);
+    }
+
+    /**
+     * Gets an unmodifiable {@link Set} version of the roles granted to this user.
+     *
+     * @return The roles this user has.
+     */
+    public Set<String> getRoles() {
+        return Collections.unmodifiableSet(roles);
     }
 
     /**
