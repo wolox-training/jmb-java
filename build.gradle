@@ -24,6 +24,9 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-hateoas'
     compile 'org.flywaydb:flyway-core'
     compile 'com.google.guava:guava:27.1-jre'
+    compile 'io.jsonwebtoken:jjwt-api:0.10.5'
+    runtime 'io.jsonwebtoken:jjwt-impl:0.10.5'
+    runtime 'io.jsonwebtoken:jjwt-jackson:0.10.5'
     compileOnly 'org.projectlombok:lombok:1.18.8'
     runtime 'org.postgresql:postgresql'
     testCompile('org.springframework.boot:spring-boot-starter-test') {

@@ -11,22 +11,23 @@ spring:
   flyway:
     locations: "classpath:db/migrations"
 
-
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQL95Dialect
-        #                show_sql: true
-        #                format_sql: true
+#        show_sql: true
+#        format_sql: true
         jdbc:
           lob:
             non_contextual_creation: true
     open-in-view: false
 
+
 server:
   port: 8081
+
 
 open-library:
   api:
@@ -34,3 +35,10 @@ open-library:
     paths:
       books:
         search-by-isbn: /books?format=json&jscmd=data&bibkeys=ISBN:{isbn}
+
+
+authentication:
+  jwt:
+    duration: 3600
+    fail_on_invalid: false
+    fail_on_blacklisted: false
