@@ -34,6 +34,11 @@
       "name": "authentication.jwt.fail_on_blacklisted",
       "type": "java.lang.Boolean",
       "description": "A flag indicating whether the authentication process must fail if a JWT is blacklisted. Will discard the token in such case."
+    },
+    {
+      "name": "authentication.jwt.allow_anonymous",
+      "type": "java.lang.Boolean",
+      "description": "A flag indicating whether a request with an invalid or blacklisted JWT can be interpreted as an anonymous request. However, note that if the endpoint is secured, the authentication will fail."
     }
   ]
 }

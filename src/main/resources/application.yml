@@ -42,3 +42,4 @@ authentication:
     duration: 3600
     fail_on_invalid: false
     fail_on_blacklisted: false
+    allow_anonymous: true
