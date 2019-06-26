@@ -26,25 +26,25 @@ public class UserCreationRequestDto {
     /**
      * The user's password.
      */
-    @NotNull(message = "The password is missing.")
+    @NotNull(message = Constants.MISSING_PASSWORD)
     @Size(min = User.PASSWORD_MIN_LENGTH,
-        message = "The password must contain at least " + User.PASSWORD_MIN_LENGTH + " characters"
+        message = Constants.SHORT_PASSWORD
     )
     @Pattern(
         regexp = User.CONTAIN_LOWERCASE_REGEX,
-        message = "The password must contain a lowercase letter"
+        message = Constants.PASSWORD_MISSING_LOWERCASE
     )
     @Pattern(
         regexp = User.CONTAIN_UPPERCASE_REGEX,
-        message = "The password must contain an uppercase letter"
+        message = Constants.PASSWORD_MISSING_UPPERCASE
     )
     @Pattern(
         regexp = User.CONTAIN_NUMBER_REGEX,
-        message = "The password must contain a number"
+        message = Constants.PASSWORD_MISSING_NUMBER
     )
     @Pattern(
         regexp = User.CONTAIN_SPECIAL_CHARACTER_REGEX,
-        message = "The password must contain a special character"
+        message = Constants.PASSWORD_MISSING_SPECIAL
     )
     private final String password;
     /**
