@@ -7,11 +7,14 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.Repository;
-import wolox.training.models.Book;
+import wolox.training.utils.TestHelper;
+
 
 /**
  * Helper class for persistence testing.
@@ -81,11 +84,11 @@ import wolox.training.models.Book;
      * Abstract test for retrieving operations.
      *
      * @param repository The {@link Repository} to be tested.
-     * @param retrievingOperation A {@link BiFunction} that given a {@link BookRepository} and an
-     * object of type {@code C}, it returns an {@link Optional} of {@link Book}. The object of type
-     * {@code C} is the condition used to retrieve the {@link Book}.
-     * @param conditionGetter A {@link Function} that given a {@link Book} retrieves the condition
-     * used to retrieve from the {@link BookRepository}.
+     * @param retrievingOperation A {@link BiFunction} that given the {@code repository} and an
+     * object of type {@code C}, it returns an {@link Optional} of {@code T}. The object of type
+     * {@code C} is the condition used to retrieve the entity of type {@code T}.
+     * @param conditionGetter A {@link Function} that given an entity of type {@code T} retrieves
+     * the condition used to retrieve from the {@code repository}.
      * @param entityManager An {@link EntityManager} used to prepare the database before testing.
      * @param listMocker An {@link IntFunction} that, given an {@code int}, it creates a {@link
      * List} of mocked entities of type {@code T} to be stored in the database before testing. It
@@ -127,6 +130,53 @@ import wolox.training.models.Book;
             entity,
             retrievedOptional.get(),
             "Another entity has been retrieved"
+        );
+    }
+
+    /**
+     * Performs a "retrieval of entity" test when there is more than once entity with the same value
+     * used to search, but only one entity is expected.
+     *
+     * @param repository The {@link Repository} to be tested.
+     * @param retrievingOperation A {@link BiFunction} that given the {@code repository} and an
+     * object of type {@code C}, it returns an {@link Optional} of {@code T}. The object of type
+     * {@code C} is the condition used to retrieve the entity of type {@code T}.
+     * @param conditionGetter A {@link Function} that given an entity of type {@code T} retrieves
+     * the condition used to retrieve from the {@code repository}.
+     * @param entityManager An {@link EntityManager} used to prepare the database before testing.
+     * @param seedSupplier A {@link Supplier} of entities of type {@code T}, used to create the seed
+     * used to populate the database with entities with repeated values.
+     * @param cloner A {@link Function} that given an entity of type {@code T}, it returns another
+     * entity of type {@code T} with the same values (but must be another instance)
+     * @param message A message to be displayed in case the assertion fails.
+     * @param <T> The concrete type of the entity.
+     * @param <R> The concrete type of the {@link Repository}.
+     * @param <C> The concrete type of the condition.
+     */
+    /* package */
+    static <T, R extends Repository<T, ?>, C> void testSeveralInstancesAndJustOneSearch(
+        final R repository,
+        final BiFunction<R, C, Optional<T>> retrievingOperation,
+        final Function<T, C> conditionGetter,
+        final EntityManager entityManager,
+        final Supplier<T> seedSupplier,
+        final Function<T, T> cloner,
+        final String message) {
+
+        final var maxListSize = 10;
+        final var book = TestHelper.mockBook();
+        final var seed = seedSupplier.get();
+        final var sameEntity = Stream.generate(() -> cloner.apply(seed))
+            .limit(maxListSize)
+            .collect(Collectors.toList());
+
+        sameEntity.forEach(entityManager::persist);
+        entityManager.flush();
+
+        final var condition = conditionGetter.apply(seed);
+        Assertions.assertDoesNotThrow(
+            () -> retrievingOperation.apply(repository, condition),
+            message
         );
     }
 
