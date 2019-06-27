@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.util.Assert;
-import wolox.training.utils.ValuesGenerator;
+import wolox.training.utils.TestHelper;
 
 /**
  * Helper class for models testing.
@@ -36,19 +36,22 @@ import wolox.training.utils.ValuesGenerator;
      *
      * @return A {@link Map} of {@link BookField} and {@link Object} containing valid values to be
      * used when creating a {@link Book}.
+     * @implNote This methods uses {@link TestHelper#mockBook()} to obtain a valid {@link Book}, and
+     * then stores all field's values in the {@link Map}.
      */
     /* package */
     static Map<BookField, Object> buildBookMap() {
+        final var book = TestHelper.mockBook();
         final Map<BookField, Object> map = new HashMap<>();
-        map.put(GENRE, ValuesGenerator.validBookGenre());
-        map.put(AUTHOR, ValuesGenerator.validBookAuthor());
-        map.put(IMAGE, ValuesGenerator.validBookImage());
-        map.put(TITLE, ValuesGenerator.validBookTitle());
-        map.put(SUBTITLE, ValuesGenerator.validBookSubtitle());
-        map.put(PUBLISHER, ValuesGenerator.validBookPublisher());
-        map.put(YEAR, ValuesGenerator.validBookYear());
-        map.put(PAGES, ValuesGenerator.validBookPages());
-        map.put(ISBN, ValuesGenerator.validBookIsbn());
+        map.put(GENRE, book.getGenre());
+        map.put(AUTHOR, book.getAuthor());
+        map.put(IMAGE, book.getImage());
+        map.put(TITLE, book.getTitle());
+        map.put(SUBTITLE, book.getSubtitle());
+        map.put(PUBLISHER, book.getPublisher());
+        map.put(YEAR, book.getYear());
+        map.put(PAGES, book.getPages());
+        map.put(ISBN, book.getIsbn());
         return map;
     }
 
@@ -58,13 +61,16 @@ import wolox.training.utils.ValuesGenerator;
      *
      * @return A {@link Map} of {@link UserField} and {@link Object} containing valid values to be
      * used when creating a {@link User}.
+     * @implNote This methods uses {@link TestHelper#mockUser()} ()} to obtain a valid {@link User},
+     * and then stores all field's values in the {@link Map}.
      */
     /* package */
     static Map<UserField, Object> buildUserMap() {
+        final var user = TestHelper.mockUser();
         final Map<UserField, Object> map = new HashMap<>();
-        map.put(USERNAME, ValuesGenerator.validUserUsername());
-        map.put(NAME, ValuesGenerator.validUserName());
-        map.put(BIRTH_DATE, ValuesGenerator.validUserBirthDate());
+        map.put(USERNAME, user.getUsername());
+        map.put(NAME, user.getName());
+        map.put(BIRTH_DATE, user.getBirthDate());
         return map;
     }
 
