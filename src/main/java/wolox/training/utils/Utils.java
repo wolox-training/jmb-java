@@ -21,7 +21,7 @@ public class Utils {
      * @return A {@link String} consisting of the values of the given {@code authorsStream} being
      * sorted and joined.
      */
-    public static String sortAndJoinAuthors(final Stream<String> authorsStream) {
+    public static String sortAndJoinWithCommas(final Stream<String> authorsStream) {
         return authorsStream.sorted().collect(Collectors.joining(", "));
     }
 

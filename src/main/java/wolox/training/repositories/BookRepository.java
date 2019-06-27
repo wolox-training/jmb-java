@@ -36,7 +36,7 @@ public interface BookRepository extends CrudRepository<Book, Long> {
 
     /**
      * Returns one {@link Book} that contains the given {@code authors} {@link List} as its author,
-     * appended according to {@link Utils#sortAndJoinAuthors(Stream)}.
+     * appended according to {@link Utils#sortAndJoinWithCommas(Stream)}.
      *
      * @param authors The authors {@link List}
      * @return An {@link Optional} containing the {@link Book} that match the condition, or empty
@@ -47,7 +47,7 @@ public interface BookRepository extends CrudRepository<Book, Long> {
     default Optional<Book> getByAuthorsExactMatch(final List<String> authors) {
         Assert.notEmpty(authors, "The authors list must not be null");
         authors.forEach(author -> Assert.hasText(author, "All authors must have text"));
-        final var appended = Utils.sortAndJoinAuthors(authors.stream());
+        final var appended = Utils.sortAndJoinWithCommas(authors.stream());
         return getFirstByAuthor(appended);
     }
 }

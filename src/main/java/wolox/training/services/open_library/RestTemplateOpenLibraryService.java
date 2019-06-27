@@ -73,12 +73,12 @@ class RestTemplateOpenLibraryService implements OpenLibraryService {
             .map(jsonNode -> {
 
                 // Initialize author and publisher which are turned as a list of N > 1 by Open Library
-                final var author = Utils.sortAndJoinAuthors(
+                final var author = Utils.sortAndJoinWithCommas(
                     StreamSupport.stream(jsonNode.path("authors").spliterator(), false)
                         .map(n -> n.path("name"))
                         .map(JsonNode::asText)
                 );
-                final var publisher = Utils.sortAndJoinAuthors(
+                final var publisher = Utils.sortAndJoinWithCommas(
                     StreamSupport.stream(jsonNode.path("publishers").spliterator(), false)
                         .map(n -> n.path("name"))
                         .map(JsonNode::asText)
