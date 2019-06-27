@@ -3,6 +3,8 @@ package wolox.training.utils;
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
 import wolox.training.models.Book;
 import wolox.training.models.User;
 
@@ -15,6 +17,11 @@ public class ValuesGenerator {
      * The minimum value for any id.
      */
     private static final long MIN_ID = 1;
+
+    /**
+     * Special characters (i.e to be used to create a random password with special characters).
+     */
+    private static final char[] SPECIAL_CHARACTERS = {'_', '-', '!', '$', '%', '&', '/', '*', '+'};
 
     /**
      * Private constructor to avoid instantiation.
@@ -135,17 +142,27 @@ public class ValuesGenerator {
 
     /**
      * Mocks a {@link User}0s password using {@link Faker} utilities.
+     *
      * @return A mocked {@link User} password.
      */
     public static String validPassword() {
-        final var passwordWithoutDigits = Faker.instance().internet().password(
-            User.PASSWORD_MIN_LENGTH,
-            2 * User.PASSWORD_MIN_LENGTH,
-            true,
-            true
-        );
-        final var digit = Faker.instance().number().digit();
-        return passwordWithoutDigits + digit;
+        final var randomString = Faker.instance()
+            .lorem()
+            .characters(User.PASSWORD_MIN_LENGTH, 2 * User.PASSWORD_MIN_LENGTH);
+        final var halfLength = randomString.length() / 2;
+        final var lowercase = randomString.substring(0, halfLength).toLowerCase();
+        final var uppercase = randomString.substring(halfLength).toUpperCase();
+        final var numbers = Faker.instance().number().digits(halfLength);
+        final var specials = Stream.generate(ValuesGenerator::randomSpecialChar)
+            .limit(halfLength)
+            .collect(Collector.of(
+                StringBuilder::new,
+                StringBuilder::append,
+                StringBuilder::append,
+                StringBuilder::toString
+            ));
+
+        return lowercase + uppercase + numbers + specials;
     }
 
     /**
@@ -167,5 +184,16 @@ public class ValuesGenerator {
             Faker.instance().date().birthday().toInstant(),
             ZoneId.systemDefault()
         );
+    }
+
+
+    /**
+     * @return A random special character taken from the {@link #SPECIAL_CHARACTERS} array.
+     */
+    private static char randomSpecialChar() {
+        final var index = (int) Faker.instance()
+            .number()
+            .numberBetween(0L, SPECIAL_CHARACTERS.length);
+        return SPECIAL_CHARACTERS[index];
     }
 }
