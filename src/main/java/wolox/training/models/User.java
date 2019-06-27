@@ -230,7 +230,7 @@ public class User {
         );
         Preconditions.checkArgument(
             plainPassword.matches(CONTAIN_SPECIAL_CHARACTER_REGEX),
-            "The password must special characters"
+            "The password must contain special characters"
         );
     }
 
