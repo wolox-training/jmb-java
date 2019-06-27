@@ -16,7 +16,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.util.Assert;
 import wolox.training.models.Book;
 import wolox.training.models.User;
@@ -287,5 +289,20 @@ import wolox.training.utils.ValuesGenerator;
     /* package */
     static byte[] emptyContent() {
         return new byte[0];
+    }
+
+    /**
+     * Adds the given {@code jwt} to the given {@code baseRequestBuilder}, as a bearer token in the
+     * {@link HttpHeaders#AUTHORIZATION} header.
+     *
+     * @param baseRequestBuilder The {@link MockHttpServletRequestBuilder} to be configured.
+     * @param jwt The JWT to be added.
+     * @return The given {@code baseRequestBuilder} configured with the given token.
+     */
+    /* package */
+    static MockHttpServletRequestBuilder withJwt(
+        final MockHttpServletRequestBuilder baseRequestBuilder,
+        final String jwt) {
+        return baseRequestBuilder.header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
     }
 }
