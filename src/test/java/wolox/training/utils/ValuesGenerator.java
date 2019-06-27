@@ -12,6 +12,11 @@ import wolox.training.models.User;
 public class ValuesGenerator {
 
     /**
+     * The minimum value for any id.
+     */
+    private static final long MIN_ID = 1;
+
+    /**
      * Private constructor to avoid instantiation.
      */
     private ValuesGenerator() {
@@ -24,7 +29,7 @@ public class ValuesGenerator {
      * @return A mocked {@link Book} id.
      */
     public static long validBookId() {
-        return Faker.instance().number().numberBetween(Long.MIN_VALUE, Long.MAX_VALUE);
+        return Faker.instance().number().numberBetween(MIN_ID, Long.MAX_VALUE);
     }
 
     /**
@@ -116,7 +121,7 @@ public class ValuesGenerator {
      * @return A mocked {@link Book} id.
      */
     public static long validUserId() {
-        return Faker.instance().number().numberBetween(Long.MIN_VALUE, Long.MAX_VALUE);
+        return Faker.instance().number().numberBetween(MIN_ID, Long.MAX_VALUE);
     }
 
     /**

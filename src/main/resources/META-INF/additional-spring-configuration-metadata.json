@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "open-library.api.base-url",
+      "type": "java.lang.String",
+      "description": "The base URL of the Open Library API."
+    },
+    {
+      "name": "open-library.api.paths.books.search-by-isbn",
+      "type": "java.lang.String",
+      "description": "The URL template used to search Books by ISBN using the Open Library API."
+    }
+  ]
+}
