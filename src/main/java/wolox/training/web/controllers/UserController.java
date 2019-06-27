@@ -1,5 +1,6 @@
 package wolox.training.web.controllers;
 
+import java.security.Principal;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import wolox.training.exceptions.AuthenticationException;
 import wolox.training.exceptions.AuthorizationException;
 import wolox.training.exceptions.NoSuchEntityException;
 import wolox.training.models.Book;
@@ -76,6 +78,22 @@ public class UserController {
             .collect(Collectors.toList());
 
         return ResponseEntity.ok(users);
+    }
+
+    /**
+     * Endpoint for getting the currently authenticated {@link User}.
+     *
+     * @param principal The {@link Principal} representing the currently authenticated {@link
+     * User}.
+     * @return A {@link ResponseEntity} containing the currently authenticated {@link User} it
+     * exists, or with 401 Unauthorized {@link ResponseEntity} otherwise.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UserDownloadDto> getAuthenticatedUser(final Principal principal) {
+        return userRepository.getFirstByUsername(principal.getName())
+            .map(UserDownloadDto::new)
+            .map(ResponseEntity::ok)
+            .orElseThrow(AuthenticationException::new);
     }
 
     /**

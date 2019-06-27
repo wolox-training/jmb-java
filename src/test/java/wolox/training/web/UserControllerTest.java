@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static wolox.training.web.WebTestHelper.withJwt;
 
+import java.security.Principal;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Optional;
@@ -74,6 +75,10 @@ class UserControllerTest {
      * The API base path for {@link User}s.
      */
     private static final String USERS_PATH = "/api/users/";
+    /**
+     * The API path for getting the currently authenticated {@link User}.
+     */
+    private static final String ME_PATH = USERS_PATH + "me/";
     /**
      * The API path for a specific {@link User} (located by its id).
      */
@@ -209,6 +214,54 @@ class UserControllerTest {
         verifyZeroInteractions(bookRepository);
     }
 
+    /**
+     * Tests the API response when requesting the currently authenticated {@link User}s (i.e using
+     * the controller method {@link UserController#getAuthenticatedUser(Principal)}), and the JWT is
+     * sent in the request.
+     *
+     * @param jwt An injected JWT to be sent in order to authenticate with the server
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Get currently user - Authenticated")
+    @AuthenticatedWithJwt(username = AUTHENTICATED_USERNAME)
+    void testGetAuthenticatedUser(@ValidJwt final String jwt) throws Exception {
+        // Only way to get the actual user from the JWTExtension
+        final var user = userRepository
+            .getFirstByUsername(AUTHENTICATED_USERNAME)
+            .orElseThrow(
+                () -> new IllegalStateException("The mocked repository MUST return a user")
+            );
+
+        mockMvc.perform(
+            withJwt(get(ME_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE), jwt)
+        )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(WebTestHelper.userJsonResultMatcher(user, "$"))
+        ;
+        verify(userRepository, times(3)).getFirstByUsername(AUTHENTICATED_USERNAME);
+        verifyNoMoreInteractions(userRepository);
+        verifyZeroInteractions(bookRepository);
+    }
+
+    /**
+     * Tests the API response when requesting the currently authenticated {@link User}s (i.e using
+     * the controller method {@link UserController#getAuthenticatedUser(Principal)}), and no JWT is
+     * sent in the request.
+     *
+     * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
+     */
+    @Test
+    @DisplayName("Get currently user - Authenticated")
+    void testGetAuthenticatedUser() throws Exception {
+        mockMvc.perform(get(ME_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$").doesNotExist())
+        ;
+        verifyZeroInteractions(userRepository);
+        verifyZeroInteractions(bookRepository);
+    }
 
     /**
      * Tests the API response when requesting a {@link User} by its id (i.e the controller method is
@@ -612,7 +665,6 @@ class UserControllerTest {
      * {@link Book} not exists.
      *
      * @param jwt An injected JWT to be sent in order to authenticate with the server
-     *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
@@ -640,7 +692,6 @@ class UserControllerTest {
      * {@link Book} exists.
      *
      * @param jwt An injected JWT to be sent in order to authenticate with the server
-     *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
@@ -668,7 +719,6 @@ class UserControllerTest {
      * {@link Book} not exists.
      *
      * @param jwt An injected JWT to be sent in order to authenticate with the server
-     *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
@@ -696,7 +746,6 @@ class UserControllerTest {
      * Book} exists.
      *
      * @param jwt An injected JWT to be sent in order to authenticate with the server
-     *
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
      */
     @Test
