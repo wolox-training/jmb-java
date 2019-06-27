@@ -1,6 +1,7 @@
 package wolox.training.web.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -10,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import wolox.training.services.authentication.JwtTokenService;
 
 /**
  * Web security configuration class.
@@ -19,33 +21,38 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
-     * The {@link JwtAuthenticationProvider} used to process {@link PreAuthenticatedJwtToken}s.
+     * The {@link JwtTokenService} to be passed to the {@link JwtAuthenticationProvider} bean
+     * created by this configuration class.
      */
-    private final JwtAuthenticationProvider jwtAuthenticationProvider;
+    private final JwtTokenService jwtTokenService;
+
     /**
-     * A {@link RestAuthenticationEntryPoint} to return a 401 Unauthorized in case of failing the
-     * authentication.
+     * The "authentication.jwt.allow_anonymous" flag to be passed to the {@link
+     * JwtAuthenticationProvider} bean created by this configuration class.
      */
-    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final boolean allowAnonymous;
 
 
     /**
      * Constructor.
      *
-     * @param jwtAuthenticationProvider The {@link JwtAuthenticationProvider} used to process {@link
-     * PreAuthenticatedJwtToken}s.
+     * @param jwtTokenService The {@link JwtTokenService} to be passed to the {@link
+     * JwtAuthenticationProvider} bean created by the configuration class.
+     * @param allowAnonymous The "authentication.jwt.allow_anonymous" flag to be passed to the
+     * {@link JwtAuthenticationProvider} bean created by this configuration class.
      */
     @Autowired
-    public WebSecurityConfig(final JwtAuthenticationProvider jwtAuthenticationProvider,
-        final RestAuthenticationEntryPoint restAuthenticationEntryPoint) {
-        this.jwtAuthenticationProvider = jwtAuthenticationProvider;
-        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
+    public WebSecurityConfig(
+        final JwtTokenService jwtTokenService,
+        @Value("${authentication.jwt.allow_anonymous}") final boolean allowAnonymous) {
+        this.allowAnonymous = allowAnonymous;
+        this.jwtTokenService = jwtTokenService;
     }
 
 
     @Override
-    protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(jwtAuthenticationProvider);
+    protected void configure(final AuthenticationManagerBuilder auth) {
+        auth.authenticationProvider(jwtAuthenticationProvider());
     }
 
     @Override
@@ -60,14 +67,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests()
-            .antMatchers(HttpMethod.POST, "/api/tokens").permitAll()
-            .antMatchers(HttpMethod.POST, "/api/users").permitAll()
-            .antMatchers(HttpMethod.PUT, "/api/users/{userId:\\d+}/password").permitAll()
-            .antMatchers(HttpMethod.POST, "/api/books").permitAll()
+            .mvcMatchers(HttpMethod.POST, "/api/tokens").permitAll()
+            .mvcMatchers(HttpMethod.POST, "/api/users").permitAll()
+            .mvcMatchers(HttpMethod.PUT, "/api/users/{userId:\\d+}/password").permitAll()
+            .mvcMatchers(HttpMethod.POST, "/api/books/").permitAll()
             .anyRequest().authenticated()
             .and()
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling().authenticationEntryPoint(restAuthenticationEntryPoint)
+            .exceptionHandling().authenticationEntryPoint(restAuthenticationEntryPoint())
         ;
     }
 
@@ -85,5 +92,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         final var filter = new JwtAuthenticationFilter();
         filter.setAuthenticationManager(this.authenticationManager());
         return filter;
+    }
+
+    /**
+     * Creates a bean of a {@link JwtAuthenticationProvider}.
+     *
+     * @return The created {@link JwtAuthenticationProvider} bean.
+     */
+    @Bean
+    public JwtAuthenticationProvider jwtAuthenticationProvider() {
+        return new JwtAuthenticationProvider(jwtTokenService, allowAnonymous);
+    }
+
+    /**
+     * Creates a bean of a {@link RestAuthenticationEntryPoint}.
+     *
+     * @return The created {@link RestAuthenticationEntryPoint} bean.
+     */
+    @Bean
+    public RestAuthenticationEntryPoint restAuthenticationEntryPoint() {
+        return new RestAuthenticationEntryPoint();
     }
 }

@@ -44,7 +44,6 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
             .map(jwtToken -> getAuthenticationManager().authenticate(jwtToken))
             .orElse(ANONYMOUS_AUTHENTICATION_TOKEN)
             ;
-        // TODO: throw exception?
     }
 
     @Override
