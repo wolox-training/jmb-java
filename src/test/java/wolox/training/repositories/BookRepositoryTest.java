@@ -124,36 +124,15 @@ class BookRepositoryTest {
      * Tests that searching by publisher, genre and year returns all the matching {@link Book}s.
      */
     @Test
-    @DisplayName("Search by publisher, genre and year - Contained")
-    void testSearchByPublisherAndGenreAndYearContained() {
-        final var publisher = ValuesGenerator.validBookPublisher();
-        final var genre = ValuesGenerator.validBookGenre();
-        final var year = ValuesGenerator.validBookYear();
-        final var size = 10;
+    @DisplayName("Search by publisher, genre and year (naming template) - Contained")
+    void testSearchByPublisherAndGenreAndYearContainedNamingTemplate() {
+        testSearchByPublisherAndGenreAndYear(bookRepository::getByPublisherAndGenreAndYear);
+    }
 
-        final var books = Stream.concat(
-            Stream.generate(() -> withPublisherGenreAndYear(publisher, genre, year)).limit(size),
-            Stream.generate(TestHelper::mockBook).limit(size)
-        ).collect(Collectors.toList());
-
-        books.forEach(entityManager::persist);
-        entityManager.flush();
-
-        // The second stream might have added more
-        final var matchingBooks = books.stream()
-            .filter(book -> book.getPublisher().equals(publisher))
-            .filter(book -> book.getGenre().equals(genre))
-            .filter(book -> book.getYear().equals(year))
-            .collect(Collectors.toList());
-
-        final var returned = bookRepository.getByPublisherAndGenreAndYear(publisher, genre, year);
-
-        Assertions.assertEquals(
-            matchingBooks,
-            returned,
-            "Searching by publisher, genre and year does not work as expected."
-                + " The returned List of Books is not the expected."
-        );
+    @Test
+    @DisplayName("Search by publisher, genre and year (custom query) - Contained")
+    void testSearchByPublisherAndGenreAndYearContainedCustomQuery() {
+        testSearchByPublisherAndGenreAndYear(bookRepository::getWithPublisherGenreAndYear);
     }
 
     /**
@@ -298,6 +277,58 @@ class BookRepositoryTest {
             book.getYear(),
             book.getPages(),
             book.getIsbn()
+        );
+    }
+
+    /**
+     * A {@link FunctionalInterface} to search a {@link List} of {@link Book}s with their publisher,
+     * genre and year matching the given ones.
+     */
+    @FunctionalInterface
+    private interface BooksFinder {
+
+        /**
+         * Searches for {@link Book}s matching the given parameters.
+         *
+         * @param publisher The publisher to be matched
+         * @param genre The genre to be matched.
+         * @param year The year to be matched.
+         * @return The matching {@link Book}s.
+         */
+        List<Book> find(final String publisher, final String genre, final String year);
+    }
+
+    /**
+     * An abstract test for searching with birth date between and name matching a pattern.
+     *
+     * @param booksFinder The {@link BooksFinder} to be used.
+     */
+    void testSearchByPublisherAndGenreAndYear(final BooksFinder booksFinder) {
+        final var publisher = ValuesGenerator.validBookPublisher();
+        final var genre = ValuesGenerator.validBookGenre();
+        final var year = ValuesGenerator.validBookYear();
+        final var size = 10;
+
+        final var books = Stream.concat(
+            Stream.generate(() -> withPublisherGenreAndYear(publisher, genre, year)).limit(size),
+            Stream.generate(TestHelper::mockBook).limit(size)
+        ).collect(Collectors.toList());
+
+        books.forEach(entityManager::persist);
+        entityManager.flush();
+
+        // The second stream might have added more
+        final var matchingBooks = books.stream()
+            .filter(book -> book.getPublisher().equals(publisher))
+            .filter(book -> book.getGenre().equals(genre))
+            .filter(book -> book.getYear().equals(year))
+            .collect(Collectors.toList());
+
+        Assertions.assertEquals(
+            matchingBooks,
+            booksFinder.find(publisher, genre, year),
+            "Searching by publisher, genre and year does not work as expected."
+                + " The returned List of Books is not the expected."
         );
     }
 
