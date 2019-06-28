@@ -3,6 +3,7 @@ package wolox.training.repositories;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +16,7 @@ import wolox.training.utils.Utils;
  * A repository for {@link Book}s.
  */
 @Repository
-public interface BookRepository extends CrudRepository<Book, Long> {
+public interface BookRepository extends CrudRepository<Book, Long>, JpaSpecificationExecutor<Book> {
 
     /**
      * Returns one {@link Book} of the given {@code author}
