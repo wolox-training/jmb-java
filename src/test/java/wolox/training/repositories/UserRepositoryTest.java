@@ -138,7 +138,7 @@ class UserRepositoryTest {
 
     /**
      * Tests that searching by birth date between and name matching returns all the matching {@link
-     * Book}s.
+     * User}s using the naming template method.
      */
     @Test
     @DisplayName("Search by birth date between and name matching (naming template) - Contained")
@@ -150,12 +150,117 @@ class UserRepositoryTest {
 
     /**
      * Tests that searching by birth date between and name matching returns all the matching {@link
-     * Book}s.
+     * User}s using the custom query method.
      */
     @Test
     @DisplayName("Search by birth date and name matching (custom query) - Contained")
     void testSearchByBirthDateBetweenAndNameMatchingContainedCustomQuery() {
         testSearchByBirthDateBetweenAndNameMatching(userRepository::getWithBirthDateAndName);
+    }
+
+    /**
+     * Tests that searching by birth date between and name matching using the custom method, sending
+     * a {@code null} from Date.
+     */
+    @Test
+    @DisplayName("Search by birth date between and name matching (custom query) - Null from date")
+    void testSearchByBirthDateBetweenAndNameMatchingWithNullFromDate() {
+        testSearchByBirthDateBetweenAndNameMatching(
+            null,
+            FROM.plusYears(PLUS_YEARS),
+            Faker.instance().name().firstName(),
+            userRepository::getWithBirthDateAndName
+        );
+    }
+
+    /**
+     * Tests that searching by birth date between and name matching using the custom method, sending
+     * a {@code null} to Date.
+     */
+    @Test
+    @DisplayName("Search by birth date between and name matching (custom query) - Null to date")
+    void testSearchByBirthDateBetweenAndNameMatchingWithNullToDate() {
+        testSearchByBirthDateBetweenAndNameMatching(
+            FROM,
+            null,
+            Faker.instance().name().firstName(),
+            userRepository::getWithBirthDateAndName
+        );
+    }
+
+    /**
+     * Tests that searching by birth date between and name matching using the custom method, sending
+     * a {@code null} name pattern.
+     */
+    @Test
+    @DisplayName("Search by birth date between and name matching (custom query) - Null name pattern")
+    void testSearchByBirthDateBetweenAndNameMatchingWithNullNamePattern() {
+        testSearchByBirthDateBetweenAndNameMatching(
+            FROM,
+            FROM.plusYears(PLUS_YEARS),
+            null,
+            userRepository::getWithBirthDateAndName
+        );
+    }
+
+    /**
+     * Tests that searching by birth date between and name matching using the custom method, sending
+     * a {@code null} from and to Date.
+     */
+    @Test
+    @DisplayName("Search by birth date between and name matching (custom query) - Null from and to date")
+    void testSearchByBirthDateBetweenAndNameMatchingWithNullFromAndToDate() {
+        testSearchByBirthDateBetweenAndNameMatching(
+            null,
+            null,
+            Faker.instance().name().firstName(),
+            userRepository::getWithBirthDateAndName
+        );
+    }
+
+    /**
+     * Tests that searching by birth date between and name matching using the custom method, sending
+     * a {@code null} from and name pattern.
+     */
+    @Test
+    @DisplayName("Search by birth date between and name matching (custom query) - Null from and name pattern")
+    void testSearchByBirthDateBetweenAndNameMatchingWithNullFromDateAndNamePattern() {
+        testSearchByBirthDateBetweenAndNameMatching(
+            null,
+            FROM.plusYears(PLUS_YEARS),
+            null,
+            userRepository::getWithBirthDateAndName
+        );
+    }
+
+    /**
+     * Tests that searching by birth date between and name matching using the custom method, sending
+     * a {@code null} to and name pattern.
+     */
+    @Test
+    @DisplayName("Search by birth date between and name matching (custom query) - Null to and name pattern")
+    void testSearchByBirthDateBetweenAndNameMatchingWithNullToDateAndNamePattern() {
+        testSearchByBirthDateBetweenAndNameMatching(
+            FROM,
+            null,
+            null,
+            userRepository::getWithBirthDateAndName
+        );
+    }
+
+    /**
+     * Tests that searching by birth date between and name matching using the custom method, sending
+     * a {@code null} from, to and name pattern.
+     */
+    @Test
+    @DisplayName("Search by birth date between and name matching (custom query) - Null from, to and name pattern")
+    void testSearchByBirthDateBetweenAndNameMatchingWithNullFromAndToDateAndNamePattern() {
+        testSearchByBirthDateBetweenAndNameMatching(
+            null,
+            null,
+            null,
+            userRepository::getWithBirthDateAndName
+        );
     }
 
 
@@ -167,8 +272,8 @@ class UserRepositoryTest {
     @Test
     @DisplayName("Search by birth date between and name matching - No birth date between")
     void testSearchByBirthDateBetweenAndNameMatchingNoBirthDateBetweenNotContained() {
-        final var from = LocalDate.ofYearDay(1950, 1); // A random year
-        final var to = from.plusYears(10);
+        final var from = FROM;
+        final var to = from.plusYears(PLUS_YEARS);
         testNotContained(
             user -> user.getBirthDate().isBefore(from) || user.getBirthDate().isAfter(to),
             (repository, first) -> repository.getByBirthDateBetweenAndNameContainingIgnoreCase(
@@ -194,8 +299,8 @@ class UserRepositoryTest {
         testNotContained(
             Predicate.not(user -> user.getName().toLowerCase().contains(namePattern.toLowerCase())),
             (repository, first) -> repository.getByBirthDateBetweenAndNameContainingIgnoreCase(
-                first.getBirthDate().minusYears(10),
-                first.getBirthDate().plusYears(10),
+                first.getBirthDate().minusYears(5),
+                first.getBirthDate().plusYears(5),
                 namePattern
             ),
             "Searching by birth date between and name matching does not work as expected."
@@ -483,21 +588,40 @@ class UserRepositoryTest {
         List<User> find(final LocalDate from, final LocalDate to, final String namePattern);
     }
 
+    private void testSearchByBirthDateBetweenAndNameMatching(final UsersFinder usersFinder) {
+        testSearchByBirthDateBetweenAndNameMatching(
+            FROM,
+            FROM.plusYears(PLUS_YEARS),
+            Faker.instance().name().firstName(),
+            usersFinder
+        );
+    }
+
     /**
-     * An abstract test for searching with birth date between and name matching a pattern.
+     * An abstract test for searching with birth date between and name matching a pattern. It
+     * accepts {@code null} params.
      *
+     * @param from The min. birth date {@link LocalDate}.
+     * @param to The max. birth date {@link LocalDate}.
+     * @param namePattern A pattern to be matched in the name.
      * @param usersFinder The {@link UsersFinder} to be used.
      */
-    void testSearchByBirthDateBetweenAndNameMatching(final UsersFinder usersFinder) {
-        final var size = 10;
-        final var from = LocalDate.ofYearDay(1950, 1); // A random year
-        final var to = from.plusYears(30);
-        final var namePattern = Faker.instance().name().firstName();
+    private void testSearchByBirthDateBetweenAndNameMatching(
+        final LocalDate from,
+        final LocalDate to,
+        final String namePattern,
+        final UsersFinder usersFinder) {
 
+        final var size = 10;
         final var users = Stream.concat(
-            Stream
-                .generate(() -> withBirthDateBetweenAndNameContaining(from, to, namePattern))
-                .limit(size),
+            Stream.generate(() ->
+                withBirthDateBetweenAndNameContaining(
+                    Optional.ofNullable(from).orElseGet(() -> FROM),
+                    Optional.ofNullable(to).orElseGet(() -> FROM.plusYears(PLUS_YEARS)),
+                    Optional.ofNullable(namePattern)
+                        .orElseGet(() -> Faker.instance().name().firstName())
+                )
+            ).limit(size),
             Stream.generate(TestHelper::mockUser).limit(size)
         ).collect(Collectors.toList());
 
@@ -505,10 +629,12 @@ class UserRepositoryTest {
         entityManager.flush();
 
         // The second stream might have added more
-        final var matchingBooks = users.stream()
-            .filter(user -> user.getBirthDate().isAfter(from))
-            .filter(user -> user.getBirthDate().isBefore(to))
-            .filter(user -> user.getName().toLowerCase().contains(namePattern.toLowerCase()))
+        final var matchingUsers = users.stream()
+            .filter(user -> from == null || user.getBirthDate().isAfter(from))
+            .filter(user -> to == null || user.getBirthDate().isBefore(to))
+            .filter(user -> namePattern == null
+                || user.getName().toLowerCase().contains(namePattern.toLowerCase())
+            )
             .collect(Collectors.toList());
 
         Assertions.assertAll(
@@ -516,25 +642,34 @@ class UserRepositoryTest {
                 + " does not work as expected."
                 + " The returned List of Users is not the expected.",
             () -> Assertions.assertEquals(
-                matchingBooks,
+                matchingUsers,
                 usersFinder.find(from, to, namePattern),
                 "Same case is failing"
             ),
             () -> Assertions.assertEquals(
-                matchingBooks,
-                usersFinder.find(from, to, namePattern.toLowerCase()),
+                matchingUsers,
+                usersFinder.find(
+                    from,
+                    to,
+                    Optional.ofNullable(namePattern).map(String::toLowerCase).orElse(null)
+                ),
                 "Lowercase not ignored"
             ),
             () -> Assertions.assertEquals(
-                matchingBooks,
-                usersFinder.find(from, to, namePattern.toUpperCase()),
+                matchingUsers,
+                usersFinder.find(
+                    from,
+                    to,
+                    Optional.ofNullable(namePattern).map(String::toUpperCase).orElse(null)
+                ),
                 "Uppercase not ignored"
             )
         );
     }
 
     /**
-     * Creates a {@link Book} with the given publisher, genre and year.
+     * Creates a {@link User} with the its birth date between the given {@code from} and {@code to},
+     * and with a name containing the given {@code pattern}.
      *
      * @param from The min. limit for the birth date.
      * @param to The max. limit for the birth date.
@@ -568,4 +703,15 @@ class UserRepositoryTest {
 
         return new User(ValuesGenerator.validUserUsername(), name, birthDate);
     }
+
+    /**
+     * A {@link LocalDate} to be used as a starting point.
+     */
+    private static LocalDate FROM = LocalDate.ofYearDay(1950, 1);
+
+    /**
+     * A number that indicates how many years will be added to the {@link #FROM} {@link LocalDate}
+     * when generating data.
+     */
+    private static int PLUS_YEARS = 10;
 }
