@@ -2,6 +2,7 @@ package wolox.training.web.controllers;
 
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -62,8 +63,10 @@ public class BookController {
      * Might be empty.
      */
     @GetMapping
-    public ResponseEntity<Iterable<Book>> getAllBooks(final BookSpecificationDto dto) {
-        final var books = bookRepository.findAll(dto.getSpecification());
+    public ResponseEntity<Iterable<Book>> getAllBooks(
+        final BookSpecificationDto dto,
+        final Pageable pageable) {
+        final var books = bookRepository.findAll(dto.getSpecification(), pageable).getContent();
         return ResponseEntity.ok(books);
     }
 

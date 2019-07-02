@@ -6,6 +6,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -72,12 +73,13 @@ public class UserController {
      * Might be empty.
      */
     @GetMapping
-    public ResponseEntity<Iterable<UserDownloadDto>> getAllUsers(final UserSpecificationDto dto) {
-        final var users = userRepository.findAll(dto.getSpecification())
+    public ResponseEntity<Iterable<UserDownloadDto>> getAllUsers(
+        final UserSpecificationDto dto,
+        final Pageable pageable) {
+        final var users = userRepository.findAll(dto.getSpecification(), pageable)
             .stream()
             .map(UserDownloadDto::new)
             .collect(Collectors.toList());
-
         return ResponseEntity.ok(users);
     }
 
