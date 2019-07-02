@@ -21,7 +21,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static wolox.training.web.WebTestHelper.withJwt;
 
 import java.security.Principal;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +33,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -164,8 +166,8 @@ class UserControllerTest {
 
     /**
      * Tests the API response when requesting all {@link User}s (i.e using the controller method
-     * {@link UserController#getAllUsers(UserSpecificationDto)}), and none is returned by the {@link
-     * UserRepository}.
+     * {@link UserController#getAllUsers(UserSpecificationDto, Pageable)}), and none is returned by
+     * the {@link UserRepository}.
      *
      * @param jwt An injected JWT to be sent in order to authenticate with the server
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
@@ -174,7 +176,9 @@ class UserControllerTest {
     @DisplayName("Get all users - Empty")
     @AuthenticatedWithJwt(username = AUTHENTICATED_USERNAME)
     void testGetAllUsersReturningEmptyList(@ValidJwt final String jwt) throws Exception {
-        when(userRepository.findAll()).thenReturn(Collections.emptyList());
+        // Mock with "any" as we are only testing without filtering
+        when(userRepository.findAll(any(UserSpecification.class), any(Pageable.class)))
+            .thenReturn(Page.empty());
         mockMvc.perform(
             withJwt(get(USERS_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE), jwt)
         )
@@ -182,7 +186,7 @@ class UserControllerTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$", hasSize(0)))
         ;
-        verify(userRepository, times(1)).findAll(any(UserSpecification.class));
+        verify(userRepository, times(1)).findAll(any(UserSpecification.class), any(Pageable.class));
         verify(userRepository, times(1)).getFirstByUsername(AUTHENTICATED_USERNAME);
         verifyNoMoreInteractions(userRepository);
         verifyZeroInteractions(bookRepository);
@@ -190,8 +194,8 @@ class UserControllerTest {
 
     /**
      * Tests the API response when requesting all {@link User}s (i.e using the controller method
-     * {@link UserController#getAllUsers(UserSpecificationDto)}), and a non-empty {@link Iterable}
-     * is returned by the {@link UserRepository}.
+     * {@link UserController#getAllUsers(UserSpecificationDto, Pageable)}), and a non-empty {@link
+     * Iterable} is returned by the {@link UserRepository}.
      *
      * @param jwt An injected JWT to be sent in order to authenticate with the server
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
@@ -203,8 +207,8 @@ class UserControllerTest {
         final var maxListSize = 10;
         final var mockedList = TestHelper.mockUserList(maxListSize);
         // Mock with "any" as we are only testing without filtering
-        when(userRepository.findAll(Mockito.any(UserSpecification.class)))
-            .thenReturn(mockedList);
+        when(userRepository.findAll(any(UserSpecification.class), any(Pageable.class)))
+            .thenReturn(new PageImpl<>(mockedList));
         mockMvc.perform(
             withJwt(get(USERS_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE), jwt)
         )
@@ -213,7 +217,7 @@ class UserControllerTest {
             .andExpect(jsonPath("$", hasSize(mockedList.size())))
             .andExpect(WebTestHelper.userListJsonResultMatcher(mockedList))
         ;
-        verify(userRepository, times(1)).findAll(any(UserSpecification.class));
+        verify(userRepository, times(1)).findAll(any(UserSpecification.class), any(Pageable.class));
         verify(userRepository, times(1)).getFirstByUsername(AUTHENTICATED_USERNAME);
         verifyNoMoreInteractions(userRepository);
         verifyZeroInteractions(bookRepository);
