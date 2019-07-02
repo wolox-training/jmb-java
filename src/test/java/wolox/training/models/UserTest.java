@@ -223,7 +223,7 @@ class UserTest {
     void testMatchPasswordWhenNotSet() {
         Assertions.assertThrows(
             IllegalStateException.class,
-            () -> TestHelper.mockUser().passwordMatches(Mockito.anyString()),
+            () -> TestHelper.mockUser().passwordMatches(ValuesGenerator.validPassword()),
             "Matching a password for a User without a password is being allowed"
         );
     }
