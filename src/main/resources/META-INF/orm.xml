@@ -54,6 +54,9 @@
       <basic name="username">
         <column name="username" nullable="false" insertable="true" updatable="false"/>
       </basic>
+      <basic name="hashedPassword">
+        <column name="password" nullable="false" insertable="true" updatable="true"/>
+      </basic>
       <basic name="name">
         <column name="name" nullable="false" insertable="true" updatable="false"/>
       </basic>
@@ -68,6 +71,21 @@
             nullable="false" insertable="true" updatable="false" referenced-column-name="id"/>
         </join-table>
       </many-to-many>
+      <element-collection name="roles" fetch="LAZY">
+        <column name="role" nullable="false" insertable="true" updatable="true"/>
+        <collection-table name="user_roles">
+          <join-column name="user_id"/>
+        </collection-table>
+      </element-collection>
+    </attributes>
+  </entity>
+
+  <entity class="BlacklistedJwtToken" access="FIELD">
+    <table name="blacklisted_tokens"/>
+    <attributes>
+      <id name="id">
+        <column name="id" nullable="false" insertable="true" updatable="false"/>
+      </id>
     </attributes>
   </entity>
 </entity-mappings>

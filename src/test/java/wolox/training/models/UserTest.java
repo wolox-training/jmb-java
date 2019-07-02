@@ -1,12 +1,15 @@
 package wolox.training.models;
 
+import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.models.ModelsTestHelper.UserField;
 import wolox.training.utils.TestHelper;
+import wolox.training.utils.ValuesGenerator;
 
 /**
  * Testing for the {@link User} class.
@@ -140,6 +143,112 @@ class UserTest {
             () -> user.removeBook(book),
             "Removing a book to a User that already owns it"
                 + " is throwing an unexpected exception"
+        );
+    }
+
+
+    @Test
+    @DisplayName("Set password - Null password")
+    void testSetNullPassword() {
+        Assertions.assertThrows(
+            NullPointerException.class,
+            () -> TestHelper.mockUser().changePassword(null),
+            "Changing a User's password passing a null value is being allowed"
+        );
+    }
+
+    @Test
+    @DisplayName("Set password - Short password")
+    void testSetShortPassword() {
+        Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> TestHelper.mockUser().changePassword(
+                Faker.instance().internet().password(0, User.PASSWORD_MIN_LENGTH - 1)
+            ),
+            "Changing a User's password passing a short password is being allowed"
+        );
+    }
+
+    @Test
+    @DisplayName("Set password - No lowercase")
+    void testSetPasswordWithoutLowercase() {
+        Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> TestHelper.mockUser().changePassword(
+                ValuesGenerator.validPassword().toUpperCase()
+            ),
+            "Changing a User's password passing a password without a lowercase letters is being allowed"
+        );
+    }
+
+    @Test
+    @DisplayName("Set password - No uppercase")
+    void testSetPasswordWithoutUppercase() {
+        Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> TestHelper.mockUser().changePassword(
+                ValuesGenerator.validPassword().toLowerCase()
+            ),
+            "Changing a User's password passing a password without an uppercase letters is being allowed"
+        );
+    }
+
+    @Test
+    @DisplayName("Set password - No number")
+    void testSetPasswordWithoutNumbers() {
+        Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> TestHelper.mockUser().changePassword(
+                ValuesGenerator.validPassword().replaceAll("[0-9]", "_")
+            ),
+            "Changing a User's password passing a password without an number is being allowed"
+        );
+    }
+
+    @Test
+    @DisplayName("Set password - No special character")
+    void testSetPasswordWithoutSpecialCharacters() {
+        Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> TestHelper.mockUser().changePassword(
+                ValuesGenerator.validPassword().replaceAll("[^a-zA-Z0-9]", "a")
+            ),
+            "Changing a User's password passing a password without a special character is being allowed"
+        );
+    }
+
+
+    @Test
+    @DisplayName("Match password - Not set yet")
+    void testMatchPasswordWhenNotSet() {
+        Assertions.assertThrows(
+            IllegalStateException.class,
+            () -> TestHelper.mockUser().passwordMatches(Mockito.anyString()),
+            "Matching a password for a User without a password is being allowed"
+        );
+    }
+
+    @Test
+    @DisplayName("Match password - Different passwords")
+    void testMatchDifferentPasswords() {
+        final var user = TestHelper.mockUser();
+        final var password = ValuesGenerator.validPassword();
+        user.changePassword(password);
+        Assertions.assertFalse(
+            user.passwordMatches(password + "another-stuff"),
+            "A User is matching a password when they are different"
+        );
+    }
+
+    @Test
+    @DisplayName("Match password - Same passwords")
+    void testMatchSamePasswords() {
+        final var user = TestHelper.mockUser();
+        final var password = ValuesGenerator.validPassword();
+        user.changePassword(password);
+        Assertions.assertTrue(
+            user.passwordMatches(password),
+            "A User is not matching a password when they are the same"
         );
     }
 }

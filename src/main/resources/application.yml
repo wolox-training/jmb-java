@@ -11,22 +11,23 @@ spring:
   flyway:
     locations: "classpath:db/migrations"
 
-
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQL95Dialect
-        #                show_sql: true
-        #                format_sql: true
+#        show_sql: true
+#        format_sql: true
         jdbc:
           lob:
             non_contextual_creation: true
     open-in-view: false
 
+
 server:
   port: 8081
+
 
 open-library:
   api:
@@ -34,3 +35,14 @@ open-library:
     paths:
       books:
         search-by-isbn: /books?format=json&jscmd=data&bibkeys=ISBN:{isbn}
+
+
+authentication:
+  jwt:
+    duration: 3600
+    fail_on_invalid: false
+    fail_on_blacklisted: false
+    allow_anonymous: true
+
+    public-key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3Qold2jMzk/Ca3yYusjm9hxNp3EVBnzWD8GbTSfNPV+7z/+2f9LRSx2CztMCwgPciKC+7fWHzKcUgidLbPqPpKjqlbJQ0KKp7rPHOTmAaSaVX+OVSi00p7lbU1Hdepjdzt0LTwT3EBHTU0fGghTOQZffVtKzyg4Gth6iKEhIAHQztQ63JI5c6F1o4eGwJ8JrIHcjUewXO8HDBsU+3UGtiw8ixXVZ4sfGMrWkPylAC81gCWFfQhWggGz0O9xMEBD30C1EgBBZEN8C0Wg3EgDItiUrudqvxcgnCa1ssjEgSY+kYgMsDwcqpzO5PiISNd2JIc31miM99XaQkArYIidBTwIDAQAB
+    private-key: MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDdCiV3aMzOT8JrfJi6yOb2HE2ncRUGfNYPwZtNJ809X7vP/7Z/0tFLHYLO0wLCA9yIoL7t9YfMpxSCJ0ts+o+kqOqVslDQoqnus8c5OYBpJpVf45VKLTSnuVtTUd16mN3O3QtPBPcQEdNTR8aCFM5Bl99W0rPKDga2HqIoSEgAdDO1DrckjlzoXWjh4bAnwmsgdyNR7Bc7wcMGxT7dQa2LDyLFdVnix8YytaQ/KUALzWAJYV9CFaCAbPQ73EwQEPfQLUSAEFkQ3wLRaDcSAMi2JSu52q/FyCcJrWyyMSBJj6RiAywPByqnM7k+IhI13YkhzfWaIz31dpCQCtgiJ0FPAgMBAAECggEAa2DLdKevnqX2f7rmgw6nzHVRb/8qRJ2Oa9cUt7WXKbKBDXle0de7Hq92ZTzywQeZMbJNLlIxp0SfXN7z8DwEXexFEXWvdrserDwfkvgRHoPE2vE3C/LL+pK7/8zsN+tdDWoqXTe/Qco3C+T5VSYAULMTpxzyhDyuG/jjs4fxmm3xhi5OlUc4Ffh1MMdldkzp2fw2V58dJn1iwUyv/Up/VpxvIihqLcOXY6mRoXsAlFXlClG367QxuAyVZMzb6MtAg/tmTRQ8rCN9d3/piqIdtrF/2dI/B6QfeQNtqvY7o6Sq/lBvPqpv5hPeE6kX9J/nGCbfK95uR3Nh3o5jSWmm8QKBgQD3nx4JXZjZXO+9N04QnahZTWj819OVyg1VWBEb7obfDkhOqJEgQFBg7yadmtI/NwIFaEonJ3N6e5qimuFlEPGMhNFDxJvgxK9xKH1tig61RYP27NwkFvHLhiDMQyRx1t5VX37DdeTtvEOn/jDl8i41EJyGvnacvsk2XT4b1qIdFwKBgQDkhMcwem9Qu3gAfQ1UR011Srp1FjDxpqBGnSu6MPFuirSX/m+cyUgthZ2R1q3glZKQ1OaJihqx9jNeotHGcQeXXW+nFnlqxxk+Dt2LHurYJcAmynPdSqNBmtQlQl3h2tg84rpVtYuFkEs+GRY4fzilZqkk7G9VEx9tRadauDXQiQKBgQCtdNTBksMDYEq/rQIOOaI4DDXDCBy7DLKSWgKCInBvx712/DXM9cBYZq4SMOWeSpYr24Y2LziBUBxeU0gYV+ocmN1OL2dR5/VNuyNBnDf5Wxy51+nNjhUKkIZhD5dz9yP/gcl2ehtHPV3XTARMz3z2xxAeg0TrP+oLHv3m2k7tOQKBgAik2SAFUZadMMHb+RgaBl0McZciOsG5StDA+zl0xn0m9APX1QL6PieyqS4uD6+yGLQvyXSka7QVmwXWZNb7yYy5NRL976PRWiwVxd2QUtPQQb914wIY46oEoEe0hfaYH5vV+7RoRJnNxnrX2hZTAaKICpfh9agjLAonG1h8JVT5AoGBAIl3qIMVbPPmKRveZxJ+17RRveWu+vXD3PbxWxREQMBqFuk+pPemMMoFbSVevs33cOx7m7kZ9zsgs7JkLqjAx2RqL+JtCBgkFVbwd3QMkUS7mKPIljv/cUbUOcpVZmeV6C0UBHPgMyUltbHIhmVI+d4JafTCV384y0Cv0NcRFn1/

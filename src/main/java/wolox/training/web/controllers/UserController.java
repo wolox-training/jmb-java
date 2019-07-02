@@ -18,10 +18,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import wolox.training.exceptions.AuthorizationException;
+import wolox.training.exceptions.NoSuchEntityException;
 import wolox.training.models.Book;
 import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
 import wolox.training.repositories.UserRepository;
+import wolox.training.web.dtos.ChangePasswordRequestDto;
 import wolox.training.web.dtos.UserCreationRequestDto;
 import wolox.training.web.dtos.UserDownloadDto;
 
@@ -82,12 +85,13 @@ public class UserController {
      * @return A {@link ResponseEntity} containing the {@link User} with the given {@code userId} if
      * it exists, or with 404 Not Found {@link ResponseEntity} otherwise.
      */
-    @GetMapping("/{userId}")
+    @GetMapping("/{userId:\\d+}")
     public ResponseEntity<UserDownloadDto> getById(@PathVariable("userId") final long userId) {
         return userRepository.findById(userId)
             .map(UserDownloadDto::new)
             .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+            .orElseThrow(NoSuchEntityException::new)
+            ;
     }
 
     /**
@@ -102,17 +106,38 @@ public class UserController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<UserDownloadDto> createUser(
         @RequestBody @Valid final UserCreationRequestDto dto) {
-        final var user = userRepository.save(
-            new User(
-                dto.getUsername(),
-                dto.getName(),
-                dto.getBirthDate()
-            )
-        );
+        final var user = new User(dto.getUsername(), dto.getName(), dto.getBirthDate());
+        user.changePassword(dto.getPassword());
+        final var savedUser = userRepository.save(user);
         final var uri = ControllerLinkBuilder
-            .linkTo(ControllerLinkBuilder.methodOn(UserController.class).getById(user.getId()))
+            .linkTo(ControllerLinkBuilder.methodOn(UserController.class).getById(savedUser.getId()))
             .toUri();
-        return ResponseEntity.created(uri).body(new UserDownloadDto(user));
+        return ResponseEntity.created(uri).body(new UserDownloadDto(savedUser));
+    }
+
+    /**
+     * Endpoint for changing a {@link User}'s password.
+     *
+     * @param userId The id of the {@link User} whose password must be changed.
+     * @param dto The {@link ChangePasswordRequestDto} containing the actual and new password.
+     * @return A 204 No Content {@link ResponseEntity} if there is any issue ({@link User} exists,
+     * and the current password matches the one sent by the caller).
+     * @throws NoSuchEntityException If no {@link User} exists with the given {@code userId}.
+     * @throws AuthorizationException If the {@link User}'s current password does not match the sent
+     * by the caller.
+     */
+    @Transactional
+    @PutMapping("/{userId:\\d+}/password")
+    public ResponseEntity changePassword(
+        @PathVariable("userId") final long userId,
+        @RequestBody final ChangePasswordRequestDto dto) {
+        final var user = userRepository.findById(userId).orElseThrow(NoSuchEntityException::new);
+        if (user.passwordMatches(dto.getCurrentPassword())) {
+            user.changePassword(dto.getNewPassword());
+            userRepository.save(user);
+            return ResponseEntity.noContent().build();
+        }
+        throw new AuthorizationException("Password doesn't match");
     }
 
     /**
@@ -122,7 +147,7 @@ public class UserController {
      * @return A 204 No Content {@link ResponseEntity}.
      */
     @Transactional
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/{userId:\\d+}")
     public ResponseEntity deleteUser(@PathVariable("userId") final long userId) {
         if (userRepository.existsById(userId)) {
             userRepository.deleteById(userId);
@@ -137,7 +162,7 @@ public class UserController {
      * @return A {@link ResponseEntity} of {@link Iterable} of {@link Book}s that belong to the
      * {@link User} with the given {@code userId}. Might be empty.
      */
-    @GetMapping("/{userId}/books")
+    @GetMapping("/{userId:\\d+}/books")
     public ResponseEntity<Set<Book>> getUserBooks(@PathVariable("userId") final long userId) {
         return userRepository.findById(userId)
             .map(User::getBooks)
@@ -145,7 +170,8 @@ public class UserController {
                 books.size(); // Initialize lazy collection
                 return ResponseEntity.ok(books);
             })
-            .orElse(ResponseEntity.notFound().build());
+            .orElseThrow(NoSuchEntityException::new)
+            ;
     }
 
     /**
@@ -159,8 +185,8 @@ public class UserController {
      * does not exist.
      */
     @Transactional
-    @PutMapping("/{userId}/books/{bookId}")
-    public ResponseEntity<?> addBook(
+    @PutMapping("/{userId:\\d+}/books/{bookId:\\d+}")
+    public ResponseEntity addBook(
         @PathVariable("userId") final long userId,
         @PathVariable("bookId") final long bookId) {
         return operateOverBookAndUser(userId, bookId, User::addBook);
@@ -179,7 +205,7 @@ public class UserController {
      * the {@link User}'s list does not cause any error).
      */
     @Transactional
-    @DeleteMapping("/{userId}/books/{bookId}")
+    @DeleteMapping("/{userId:\\d+}/books/{bookId:\\d+}")
     public ResponseEntity removeBook(
         @PathVariable("userId") final long userId,
         @PathVariable("bookId") final long bookId) {
@@ -210,6 +236,7 @@ public class UserController {
                         userRepository.save(user);
                         return ResponseEntity.noContent().build();
                     }))
-            .orElse(ResponseEntity.notFound().build());
+            .orElseThrow(NoSuchEntityException::new)
+            ;
     }
 }

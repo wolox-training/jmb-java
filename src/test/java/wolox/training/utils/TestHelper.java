@@ -5,11 +5,13 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.Assert;
+import wolox.training.models.BlacklistedJwtToken;
 import wolox.training.models.Book;
 import wolox.training.models.User;
 
@@ -103,6 +105,25 @@ public class TestHelper {
      */
     public static List<User> mockUserList(final int maxSize) {
         return mockCollection(maxSize, TestHelper::mockUser, LinkedList::new);
+    }
+
+    /**
+     * Mocks a {@link BlacklistedJwtToken}.
+     *
+     * @return A mocked {@link User}.
+     */
+    public static BlacklistedJwtToken mockBlacklistedJwtToken() {
+        return new BlacklistedJwtToken(UUID.randomUUID().toString());
+    }
+
+    /**
+     * Mocks a {@link List} of {@link BlacklistedJwtToken}s of random size.
+     *
+     * @param maxSize The max size the {@link List} will have
+     * @return A mocked {@link List} of {@link BlacklistedJwtToken}s.
+     */
+    public static List<BlacklistedJwtToken> mockBlacklistedJwtTokenList(final int maxSize) {
+        return mockCollection(maxSize, TestHelper::mockBlacklistedJwtToken, LinkedList::new);
     }
 
     /**

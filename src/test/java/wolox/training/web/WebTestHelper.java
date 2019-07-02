@@ -13,13 +13,17 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.util.Assert;
 import wolox.training.models.Book;
 import wolox.training.models.User;
 import wolox.training.utils.TestHelper;
+import wolox.training.utils.ValuesGenerator;
 
 /**
  * Helper class for testing the web layer.
@@ -210,12 +214,7 @@ import wolox.training.utils.TestHelper;
      */
     /* package */
     static String invalidUserCreationRequest() {
-        return bookCreationRequestJson(
-            Faker.instance().book().genre(), // Genre does not have any precondition.
-            null,
-            null,
-            null,
-            null,
+        return userCreationRequestJson(
             null,
             null,
             null,
@@ -233,6 +232,7 @@ import wolox.training.utils.TestHelper;
         final var user = TestHelper.mockUser();
         return userCreationRequestJson(
             user.getUsername(),
+            ValuesGenerator.validPassword(),
             user.getName(),
             user.getBirthDate()
         );
@@ -249,12 +249,18 @@ import wolox.training.utils.TestHelper;
     /* package */
     static String userCreationRequestJson(
         final String username,
+        final String password,
         final String name,
         final LocalDate birthDate) {
         final Map<String, Object> map = new HashMap<>();
         map.put("username", username);
+        map.put("password", password);
         map.put("name", name);
-        map.put("birthDate", birthDate.format(ofPattern("yyyy-MM-dd")));
+        map.put("birthDate",
+            Optional.ofNullable(birthDate)
+                .map(value -> value.format(ofPattern("yyyy-MM-dd")))
+                .orElse(null)
+        );
         return toJsonString(map);
     }
 
@@ -283,5 +289,20 @@ import wolox.training.utils.TestHelper;
     /* package */
     static byte[] emptyContent() {
         return new byte[0];
+    }
+
+    /**
+     * Adds the given {@code jwt} to the given {@code baseRequestBuilder}, as a bearer token in the
+     * {@link HttpHeaders#AUTHORIZATION} header.
+     *
+     * @param baseRequestBuilder The {@link MockHttpServletRequestBuilder} to be configured.
+     * @param jwt The JWT to be added.
+     * @return The given {@code baseRequestBuilder} configured with the given token.
+     */
+    /* package */
+    static MockHttpServletRequestBuilder withJwt(
+        final MockHttpServletRequestBuilder baseRequestBuilder,
+        final String jwt) {
+        return baseRequestBuilder.header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
     }
 }
