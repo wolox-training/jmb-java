@@ -121,38 +121,127 @@ class BookRepositoryTest {
     }
 
     /**
-     * Tests that searching by publisher, genre and year returns all the matching {@link Book}s.
+     * Tests that searching by publisher, genre and year returns all the matching {@link Book}s,
+     * using the naming template method.
      */
     @Test
-    @DisplayName("Search by publisher, genre and year - Contained")
-    void testSearchByPublisherAndGenreAndYearContained() {
-        final var publisher = ValuesGenerator.validBookPublisher();
-        final var genre = ValuesGenerator.validBookGenre();
-        final var year = ValuesGenerator.validBookYear();
-        final var size = 10;
+    @DisplayName("Search by publisher, genre and year (naming template) - Contained")
+    void testSearchByPublisherAndGenreAndYearContainedNamingTemplate() {
+        testSearchByPublisherAndGenreAndYear(bookRepository::getByPublisherAndGenreAndYear);
+    }
 
-        final var books = Stream.concat(
-            Stream.generate(() -> withPublisherGenreAndYear(publisher, genre, year)).limit(size),
-            Stream.generate(TestHelper::mockBook).limit(size)
-        ).collect(Collectors.toList());
+    /**
+     * Tests that searching by publisher, genre and year returns all the matching {@link Book}s,
+     * using the custom query method.
+     */
+    @Test
+    @DisplayName("Search by publisher, genre and year (custom query) - Contained")
+    void testSearchByPublisherAndGenreAndYearContainedCustomQuery() {
+        testSearchByPublisherAndGenreAndYear(bookRepository::getWithPublisherGenreAndYear);
+    }
 
-        books.forEach(entityManager::persist);
-        entityManager.flush();
+    /**
+     * Tests that searching by publisher, genre and year using the custom method, sending a {@code
+     * null} publisher.
+     */
+    @Test
+    @DisplayName("Search by publisher, genre and year (custom query) - Null publisher")
+    void testSearchByPublisherAndGenreAndYearWithNullPublisher() {
+        testSearchByPublisherAndGenreAndYear(
+            null,
+            ValuesGenerator.validBookGenre(),
+            ValuesGenerator.validBookYear(),
+            bookRepository::getWithPublisherGenreAndYear
+        );
+    }
 
-        // The second stream might have added more
-        final var matchingBooks = books.stream()
-            .filter(book -> book.getPublisher().equals(publisher))
-            .filter(book -> book.getGenre().equals(genre))
-            .filter(book -> book.getYear().equals(year))
-            .collect(Collectors.toList());
+    /**
+     * Tests that searching by publisher, genre and year using the custom method, sending a {@code
+     * null} genre.
+     */
+    @Test
+    @DisplayName("Search by publisher, genre and year (custom query) - Null genre")
+    void testSearchByPublisherAndGenreAndYearWithNullGenre() {
+        testSearchByPublisherAndGenreAndYear(
+            ValuesGenerator.validBookPublisher(),
+            null,
+            ValuesGenerator.validBookYear(),
+            bookRepository::getWithPublisherGenreAndYear
+        );
+    }
 
-        final var returned = bookRepository.getByPublisherAndGenreAndYear(publisher, genre, year);
+    /**
+     * Tests that searching by publisher, genre and year using the custom method, sending a {@code
+     * null} year.
+     */
+    @Test
+    @DisplayName("Search by publisher, genre and year (custom query) - Null year")
+    void testSearchByPublisherAndGenreAndYearWithNullYear() {
+        testSearchByPublisherAndGenreAndYear(
+            ValuesGenerator.validBookGenre(),
+            ValuesGenerator.validBookGenre(),
+            null,
+            bookRepository::getWithPublisherGenreAndYear
+        );
+    }
 
-        Assertions.assertEquals(
-            matchingBooks,
-            returned,
-            "Searching by publisher, genre and year does not work as expected."
-                + " The returned List of Books is not the expected."
+    /**
+     * Tests that searching by publisher, genre and year using the custom method, sending a {@code
+     * null} publisher and genre.
+     */
+    @Test
+    @DisplayName("Search by publisher, genre and year (custom query) - Null publisher and genre")
+    void testSearchByPublisherAndGenreAndYearWithNullPublisherAndGenre() {
+        testSearchByPublisherAndGenreAndYear(
+            null,
+            null,
+            ValuesGenerator.validBookYear(),
+            bookRepository::getWithPublisherGenreAndYear
+        );
+    }
+
+    /**
+     * Tests that searching by publisher, genre and year using the custom method, sending a {@code
+     * null} publisher and year.
+     */
+    @Test
+    @DisplayName("Search by publisher, genre and year (custom query) - Null publisher and year")
+    void testSearchByPublisherAndGenreAndYearWithNullPublisherAndYear() {
+        testSearchByPublisherAndGenreAndYear(
+            null,
+            ValuesGenerator.validBookGenre(),
+            null,
+            bookRepository::getWithPublisherGenreAndYear
+        );
+    }
+
+    /**
+     * Tests that searching by publisher, genre and year using the custom method, sending a {@code
+     * null} genre and year.
+     */
+    @Test
+    @DisplayName("Search by publisher, genre and year (custom query) - Null genre and year")
+    void testSearchByPublisherAndGenreAndYearWithNullGenreAndYear() {
+        testSearchByPublisherAndGenreAndYear(
+            ValuesGenerator.validBookPublisher(),
+            null,
+            null,
+            bookRepository::getWithPublisherGenreAndYear
+        );
+    }
+
+    /**
+     * Tests that searching by publisher, genre and year using the custom method, sending all {@code
+     * null}s.
+     */
+    @Test
+    @DisplayName("Search by publisher, genre and year (custom query) - Null all arguments")
+    void testSearchByPublisherAndGenreAndYearWithNullEverything() {
+        testSearchByPublisherAndGenreAndYear(
+            null,
+            null,
+            null,
+            bookRepository::getWithPublisherGenreAndYear
         );
     }
 
@@ -298,6 +387,82 @@ class BookRepositoryTest {
             book.getYear(),
             book.getPages(),
             book.getIsbn()
+        );
+    }
+
+    /**
+     * A {@link FunctionalInterface} to search a {@link List} of {@link Book}s with their publisher,
+     * genre and year matching the given ones.
+     */
+    @FunctionalInterface
+    private interface BooksFinder {
+
+        /**
+         * Searches for {@link Book}s matching the given parameters.
+         *
+         * @param publisher The publisher to be matched
+         * @param genre The genre to be matched.
+         * @param year The year to be matched.
+         * @return The matching {@link Book}s.
+         */
+        List<Book> find(final String publisher, final String genre, final String year);
+    }
+
+    /**
+     * An abstract test for searching by publisher genre and year
+     *
+     * @param booksFinder The {@link BooksFinder} to be used.
+     */
+    private void testSearchByPublisherAndGenreAndYear(final BooksFinder booksFinder) {
+        testSearchByPublisherAndGenreAndYear(
+            ValuesGenerator.validBookPublisher(),
+            ValuesGenerator.validBookGenre(),
+            ValuesGenerator.validBookYear(),
+            booksFinder
+        );
+    }
+
+    /**
+     * An abstract test for searching by publisher genre and year. It accepts {@code null} params.
+     *
+     * @param publisher The publisher used to search.
+     * @param genre The genre used to search.
+     * @param year The year used to search.
+     * @param booksFinder The {@link BooksFinder} to be used.
+     */
+    private void testSearchByPublisherAndGenreAndYear(
+        final String publisher,
+        final String genre,
+        final String year,
+        final BooksFinder booksFinder) {
+
+        final var size = 10;
+        final var books = Stream.concat(
+            Stream.generate(() ->
+                withPublisherGenreAndYear(
+                    Optional.ofNullable(publisher).orElseGet(ValuesGenerator::validBookGenre),
+                    Optional.ofNullable(genre).orElseGet(ValuesGenerator::validBookGenre),
+                    Optional.ofNullable(year).orElseGet(ValuesGenerator::validBookGenre)
+                )
+            ).limit(size),
+            Stream.generate(TestHelper::mockBook).limit(size)
+        ).collect(Collectors.toList());
+
+        books.forEach(entityManager::persist);
+        entityManager.flush();
+
+        // The second stream might have added more
+        final var matchingBooks = books.stream()
+            .filter(book -> publisher == null || book.getPublisher().equals(publisher))
+            .filter(book -> genre == null || book.getGenre().equals(genre))
+            .filter(book -> year == null || book.getYear().equals(year))
+            .collect(Collectors.toList());
+
+        Assertions.assertEquals(
+            matchingBooks,
+            booksFinder.find(publisher, genre, year),
+            "Searching by publisher, genre and year does not work as expected."
+                + " The returned List of Books is not the expected."
         );
     }
 
