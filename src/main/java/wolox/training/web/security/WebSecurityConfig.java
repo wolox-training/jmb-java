@@ -70,7 +70,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .mvcMatchers(HttpMethod.POST, "/api/tokens").permitAll()
             .mvcMatchers(HttpMethod.POST, "/api/users").permitAll()
             .mvcMatchers(HttpMethod.PUT, "/api/users/{userId:\\d+}/password").permitAll()
-            .mvcMatchers(HttpMethod.POST, "/api/books/").permitAll()
+            .mvcMatchers(HttpMethod.POST, "/api/books").permitAll()
             .anyRequest().authenticated()
             .and()
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
