@@ -1,9 +1,14 @@
 package wolox.training.repositories;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.persistence.EntityManager;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import wolox.training.models.Book;
 import wolox.training.utils.BookAssertions;
 import wolox.training.utils.TestHelper;
+import wolox.training.utils.ValuesGenerator;
 
 /**
  * Tests for the {@link BookRepository}.
@@ -114,6 +120,108 @@ class BookRepositoryTest {
         );
     }
 
+    /**
+     * Tests that searching by publisher, genre and year returns all the matching {@link Book}s.
+     */
+    @Test
+    @DisplayName("Search by publisher, genre and year - Contained")
+    void testSearchByPublisherAndGenreAndYearContained() {
+        final var publisher = ValuesGenerator.validBookPublisher();
+        final var genre = ValuesGenerator.validBookGenre();
+        final var year = ValuesGenerator.validBookYear();
+        final var size = 10;
+
+        final var books = Stream.concat(
+            Stream.generate(() -> withPublisherGenreAndYear(publisher, genre, year)).limit(size),
+            Stream.generate(TestHelper::mockBook).limit(size)
+        ).collect(Collectors.toList());
+
+        books.forEach(entityManager::persist);
+        entityManager.flush();
+
+        // The second stream might have added more
+        final var matchingBooks = books.stream()
+            .filter(book -> book.getPublisher().equals(publisher))
+            .filter(book -> book.getGenre().equals(genre))
+            .filter(book -> book.getYear().equals(year))
+            .collect(Collectors.toList());
+
+        final var returned = bookRepository.getByPublisherAndGenreAndYear(publisher, genre, year);
+
+        Assertions.assertEquals(
+            matchingBooks,
+            returned,
+            "Searching by publisher, genre and year does not work as expected."
+                + " The returned List of Books is not the expected."
+        );
+    }
+
+    /**
+     * Tests that searching by publisher, genre and year returns an empty {@link java.util.List} as
+     * there is no {@link Book} with the given publisher (even though, there are {@link Book}s with
+     * the given genre and year).
+     */
+    @Test
+    @DisplayName("Search by publisher, genre and year - Publisher not contained")
+    void testSearchByPublisherAndGenreAndYearPublisherNotContained() {
+        final var publisher = ValuesGenerator.validBookPublisher();
+        testNotContained(
+            Predicate.not(book -> book.getPublisher().equals(publisher)),
+            (repository, first) -> repository.getByPublisherAndGenreAndYear(
+                publisher,
+                first.getGenre(),
+                first.getYear()
+            ),
+            "Searching by publisher, genre and year does not work as expected."
+                + " The returned List of Books should be empty"
+                + " as there are no Books with the given publisher."
+        );
+    }
+
+    /**
+     * Tests that searching by publisher, genre and year returns an empty {@link java.util.List} as
+     * there is no {@link Book} with the given genre (even though, there are {@link Book}s with the
+     * given publisher and year).
+     */
+    @Test
+    @DisplayName("Search by publisher, genre and year - Genre not contained")
+    void testSearchByPublisherAndGenreAndYearGenreNotContained() {
+        final var genre = ValuesGenerator.validBookGenre();
+        testNotContained(
+            Predicate.not(book -> book.getGenre().equals(genre)),
+            (repository, first) -> repository.getByPublisherAndGenreAndYear(
+                first.getPublisher(),
+                genre,
+                first.getYear()
+            ),
+            "Searching by publisher, genre and year does not work as expected."
+                + " The returned List of Books should be empty"
+                + " as there are no Books with the given genre."
+        );
+    }
+
+    /**
+     * Tests that searching by publisher, genre and year returns an empty {@link java.util.List} as
+     * there is no {@link Book} with the given year (even though, there are {@link Book}s with the
+     * given publisher and genre).
+     */
+    @Test
+    @DisplayName("Search by publisher, genre and year - Year not contained")
+    void testSearchByPublisherAndGenreAndYearYearNotContained() {
+        final var year = ValuesGenerator.validBookYear();
+        testNotContained(
+            Predicate.not(book -> book.getYear().equals(year)),
+            (repository, first) -> repository.getByPublisherAndGenreAndYear(
+                first.getPublisher(),
+                first.getGenre(),
+                year
+            ),
+            "Searching by publisher, genre and year does not work as expected."
+                + " The returned List of Books should be empty"
+                + " as there are no Books with the given year."
+        );
+    }
+
 
     /**
      * Abstract test for retrieving operations.
@@ -139,6 +247,41 @@ class BookRepositoryTest {
     }
 
     /**
+     * Abstract test for searching {@link Book}s by publisher, genre and year when the returned
+     * {@link List} must be empty.
+     *
+     * @param bookFilter A {@link Predicate} that filters {@link Book}s that should be stored in the
+     * database. For example, the caller can state that {@link Book}s with a certain condition
+     * should not be stored in the database (for example, with a given genre), so searching by
+     * publisher, genre and year will always return an empty {@link List} when using the said
+     * genre.
+     * @param searchingFunction A {@link BiFunction} that will be called with the {@link
+     * BookRepository} and the first {@link Book} in the generated {@link Book}s {@link List}, and
+     * must return what the {@link BookRepository#getByPublisherAndGenreAndYear(String, String,
+     * String)} returns.
+     * @param message The message to be displayed in case of failure.
+     */
+    private void testNotContained(
+        final Predicate<Book> bookFilter,
+        final BiFunction<BookRepository, Book, List<Book>> searchingFunction,
+        final String message) {
+
+        final var size = 10;
+        final var books = Stream.generate(TestHelper::mockBook)
+            .filter(bookFilter)
+            .limit(size)
+            .collect(Collectors.toList());
+
+        books.forEach(entityManager::persist);
+        entityManager.flush();
+
+        Assertions.assertTrue(
+            searchingFunction.apply(bookRepository, books.get(0)).isEmpty(),
+            message
+        );
+    }
+
+    /**
      * Clones the given {@link Book} (i.e creates a new {@link Book} instance using the same values
      * as the given).
      *
@@ -155,6 +298,32 @@ class BookRepositoryTest {
             book.getYear(),
             book.getPages(),
             book.getIsbn()
+        );
+    }
+
+    /**
+     * Creates a {@link Book} with the given publisher, genre and year.
+     *
+     * @param publisher The publisher.
+     * @param genre The genre.
+     * @param year The year.
+     * @return The created {@link Book}.
+     */
+    private static Book withPublisherGenreAndYear(
+        final String publisher,
+        final String genre,
+        final String year) {
+
+        return new Book(
+            genre,
+            ValuesGenerator.validBookAuthor(),
+            ValuesGenerator.validBookImage(),
+            ValuesGenerator.validBookTitle(),
+            ValuesGenerator.validBookSubtitle(),
+            publisher,
+            year,
+            ValuesGenerator.validBookPages(),
+            ValuesGenerator.validBookIsbn()
         );
     }
 }

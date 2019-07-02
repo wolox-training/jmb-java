@@ -1,10 +1,18 @@
 package wolox.training.repositories;
 
+import com.github.javafaker.Faker;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import org.hibernate.Hibernate;
 import org.junit.jupiter.api.Assertions;
@@ -23,6 +31,7 @@ import wolox.training.models.Book;
 import wolox.training.models.User;
 import wolox.training.utils.TestHelper;
 import wolox.training.utils.UserAssertions;
+import wolox.training.utils.ValuesGenerator;
 
 /**
  * Tests for the {@link UserRepository}.
@@ -126,6 +135,117 @@ class UserRepositoryTest {
         );
     }
 
+
+    /**
+     * Tests that searching by birth date between and name matching returns all the matching {@link
+     * Book}s.
+     */
+    @Test
+    @DisplayName("Search by birth date between and name matching - Contained")
+    void testSearchByPublisherAndGenreAndYearContained() {
+        final var size = 10;
+        final var from = LocalDate.ofYearDay(1950, 1); // A random year
+        final var to = from.plusYears(30);
+        final var namePattern = Faker.instance().name().firstName();
+
+        final var users = Stream.concat(
+            Stream
+                .generate(() -> withBirthDateBetweenAndNameContaining(from, to, namePattern))
+                .limit(size),
+            Stream.generate(TestHelper::mockUser).limit(size)
+        ).collect(Collectors.toList());
+
+        users.forEach(entityManager::persist);
+        entityManager.flush();
+
+        // The second stream might have added more
+        final var matchingBooks = users.stream()
+            .filter(user -> user.getBirthDate().isAfter(from))
+            .filter(user -> user.getBirthDate().isBefore(to))
+            .filter(user -> user.getName().toLowerCase().contains(namePattern.toLowerCase()))
+            .collect(Collectors.toList());
+
+        Assertions.assertAll(
+            "Searching by birth date between and a pattern in the name"
+                + " does not work as expected."
+                + " The returned List of Users is not the expected.",
+            () -> Assertions.assertEquals(
+                matchingBooks,
+                userRepository.getByBirthDateBetweenAndNameContainingIgnoreCase(
+                    from,
+                    to,
+                    namePattern
+                ),
+                "Same case is failing"
+            ),
+            () -> Assertions.assertEquals(
+                matchingBooks,
+                userRepository.getByBirthDateBetweenAndNameContainingIgnoreCase(
+                    from,
+                    to,
+                    namePattern.toLowerCase()
+                ),
+                "Lowercase not ignored"
+            ),
+            () -> Assertions.assertEquals(
+                matchingBooks,
+                userRepository
+                    .getByBirthDateBetweenAndNameContainingIgnoreCase(
+                        from,
+                        to,
+                        namePattern.toUpperCase()
+                    ),
+                "Uppercase not ignored"
+            )
+        );
+    }
+
+    /**
+     * Tests that searching by birth date between and name matching returns an empty {@link
+     * java.util.List} as there is no {@link User} with the given name pattern (even though, there
+     * are {@link User}s with the birth date between given ones).
+     */
+    @Test
+    @DisplayName("Search by birth date between and name matching - No birth date between")
+    void testSearchByBirthDateBetweenAndNameMatchingNoBirthDateBetweenNotContained() {
+        final var from = LocalDate.ofYearDay(1950, 1); // A random year
+        final var to = from.plusYears(10);
+        testNotContained(
+            user -> user.getBirthDate().isBefore(from) || user.getBirthDate().isAfter(to),
+            (repository, first) -> repository.getByBirthDateBetweenAndNameContainingIgnoreCase(
+                from,
+                to,
+                first.getName()
+            ),
+            "Searching by birth date between and name matching does not work as expected."
+                + " The returned List of Users should be empty"
+                + " as there are no Users whose birth date is between the given from and to dates."
+        );
+    }
+
+    /**
+     * Tests that searching by birth date between and name matching returns an empty {@link
+     * java.util.List} as there is no {@link User} with the given name pattern (even though, there
+     * are {@link User}s with the birth date between given ones).
+     */
+    @Test
+    @DisplayName("Search by birth date between and name matching - Name pattern not contained")
+    void testSearchByBirthDateBetweenAndNameMatchingNamePatternNotContained() {
+        final var namePattern = Faker.instance().name().firstName();
+        testNotContained(
+            Predicate.not(user -> user.getName().toLowerCase().contains(namePattern.toLowerCase())),
+            (repository, first) -> repository.getByBirthDateBetweenAndNameContainingIgnoreCase(
+                first.getBirthDate().minusYears(10),
+                first.getBirthDate().plusYears(10),
+                namePattern
+            ),
+            "Searching by birth date between and name matching does not work as expected."
+                + " The returned List of Users should be empty"
+                + " as there are no Users whose name match the pattern."
+        );
+    }
+
+
     /**
      * Tests that the {@link UserRepository} returns a {@link User} with the lazy loaded collections
      * without being initialized, when finding by id.
@@ -182,6 +302,41 @@ class UserRepositoryTest {
             entityManager,
             TestHelper::mockUserList,
             UserAssertions::assertSame
+        );
+    }
+
+    /**
+     * Abstract test for searching {@link User}s by birth date between and name matching when the
+     * returned {@link List} must be empty.
+     *
+     * @param userFilter A {@link Predicate} that filters {@link User}s that should be stored in the
+     * database. For example, the caller can state that {@link User}s with a certain condition
+     * should not be stored in the database (for example, with a given name pattern), so searching
+     * by birth date between and name matching will always return an empty {@link List} when using
+     * the said name pattern.
+     * @param searchingFunction A {@link BiFunction} that will be called with the {@link
+     * UserRepository} and the first {@link User} in the generated {@link User}s {@link List}, and
+     * must return what the {@link UserRepository#getByBirthDateBetweenAndNameContainingIgnoreCase(LocalDate,
+     * LocalDate, String)} returns.
+     * @param message The message to be displayed in case of failure.
+     */
+    private void testNotContained(
+        final Predicate<User> userFilter,
+        final BiFunction<UserRepository, User, List<User>> searchingFunction,
+        final String message) {
+
+        final var size = 10;
+        final var users = Stream.generate(TestHelper::mockUser)
+            .filter(userFilter)
+            .limit(size)
+            .collect(Collectors.toList());
+
+        users.forEach(entityManager::persist);
+        entityManager.flush();
+
+        Assertions.assertTrue(
+            searchingFunction.apply(userRepository, users.get(0)).isEmpty(),
+            message
         );
     }
 
@@ -348,5 +503,41 @@ class UserRepositoryTest {
             user.getName(),
             user.getBirthDate()
         );
+    }
+
+    /**
+     * Creates a {@link Book} with the given publisher, genre and year.
+     *
+     * @param from The min. limit for the birth date.
+     * @param to The max. limit for the birth date.
+     * @param pattern A pattern used to search by name.
+     * @return The created {@link User}.
+     */
+    private static User withBirthDateBetweenAndNameContaining(
+        final LocalDate from,
+        final LocalDate to,
+        final String pattern) {
+
+        final var stringBuilder = new StringBuilder();
+        // Randomly add some text before and after the pattern
+        if (new Random().nextBoolean()) {
+            stringBuilder.append(Faker.instance().name().title()).append(" ");
+        }
+        stringBuilder.append(pattern);
+        if (new Random().nextBoolean()) {
+            stringBuilder.append(" ").append(Faker.instance().name().lastName());
+        }
+        final var name = stringBuilder.toString();
+
+        final var now = LocalDate.now();
+        final var minDate = Period.between(to, now).getYears();
+        final var maxDate = Period.between(from, now).getYears();
+        final var birthDate = Faker.instance().date()
+            .birthday(minDate, maxDate)
+            .toInstant()
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate();
+
+        return new User(ValuesGenerator.validUserUsername(), name, birthDate);
     }
 }

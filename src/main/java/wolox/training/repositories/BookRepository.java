@@ -33,6 +33,19 @@ public interface BookRepository extends CrudRepository<Book, Long> {
      */
     Optional<Book> getFirstByIsbn(final String isbn);
 
+    /**
+     * Returns all the {@link Book}s whose publisher, genre and year match the given ones.
+     *
+     * @param publisher The publisher to be matched.
+     * @param genre The genre to be matched.
+     * @param year The year to be matched.
+     * @return The {@link Book} matching the criteria.
+     */
+    List<Book> getByPublisherAndGenreAndYear(
+        final String publisher,
+        final String genre,
+        final String year
+    );
 
     /**
      * Returns one {@link Book} that contains the given {@code authors} {@link List} as its author,
