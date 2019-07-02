@@ -42,6 +42,7 @@ import org.springframework.test.web.servlet.RequestBuilder;
 import wolox.training.models.Book;
 import wolox.training.repositories.BlacklistedJwtTokenRepository;
 import wolox.training.repositories.BookRepository;
+import wolox.training.repositories.BookSpecification;
 import wolox.training.repositories.UserRepository;
 import wolox.training.services.authentication.JwtTokenService;
 import wolox.training.services.open_library.OpenLibraryService;
@@ -51,6 +52,7 @@ import wolox.training.web.JwtExtension.AuthenticatedWithJwt;
 import wolox.training.web.JwtExtension.ValidJwt;
 import wolox.training.web.controllers.BookController;
 import wolox.training.web.dtos.BookCreationRequestDto;
+import wolox.training.web.dtos.BookSpecificationDto;
 
 /**
  * Testing for the {@link BookController}.
@@ -138,7 +140,8 @@ class BookControllerTest {
 
     /**
      * Tests the API response when requesting all {@link Book}s (i.e using the controller method
-     * {@link BookController#getAllBooks()}), and none is returned by the {@link BookRepository}.
+     * {@link BookController#getAllBooks(BookSpecificationDto)}), and none is returned by the {@link
+     * BookRepository}.
      *
      * @param jwt An injected JWT to be sent in order to authenticate with the server
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
@@ -154,13 +157,13 @@ class BookControllerTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$", hasSize(0)))
         ;
-        verify(bookRepository, only()).findAll();
+        verify(bookRepository, only()).findAll(any(BookSpecification.class));
     }
 
     /**
      * Tests the API response when requesting all {@link Book}s (i.e using the controller method
-     * {@link BookController#getAllBooks()}), and a non-empty {@link Iterable} is returned by the
-     * {@link BookRepository}.
+     * {@link BookController#getAllBooks(BookSpecificationDto)}), and a non-empty {@link Iterable}
+     * is returned by the {@link BookRepository}.
      *
      * @param jwt An injected JWT to be sent in order to authenticate with the server
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
@@ -172,14 +175,16 @@ class BookControllerTest {
         final var maxListSize = 10;
         final var mockedList = TestHelper.mockBookList(maxListSize);
         mockedList.forEach(TestHelper::addId);
-        when(bookRepository.findAll()).thenReturn(mockedList);
+        // Mock with "any" as we are only testing without filtering
+        when(bookRepository.findAll(any(BookSpecification.class)))
+            .thenReturn(mockedList);
         mockMvc.perform(withJwt(get(BOOKS_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE), jwt))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$", hasSize(mockedList.size())))
             .andExpect(bookListJsonResultMatcher(mockedList))
         ;
-        verify(bookRepository, only()).findAll();
+        verify(bookRepository, only()).findAll(any(BookSpecification.class));
     }
 
 
