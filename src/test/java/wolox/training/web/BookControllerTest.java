@@ -35,6 +35,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -140,8 +143,8 @@ class BookControllerTest {
 
     /**
      * Tests the API response when requesting all {@link Book}s (i.e using the controller method
-     * {@link BookController#getAllBooks(BookSpecificationDto)}), and none is returned by the {@link
-     * BookRepository}.
+     * {@link BookController#getAllBooks(BookSpecificationDto, Pageable)}), and none is returned by
+     * the {@link BookRepository}.
      *
      * @param jwt An injected JWT to be sent in order to authenticate with the server
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
@@ -150,20 +153,22 @@ class BookControllerTest {
     @DisplayName("Get all books - Empty - Authenticated")
     @AuthenticatedWithJwt
     void testGetAllBooksReturningEmptyList(@ValidJwt final String jwt) throws Exception {
-        when(bookRepository.findAll()).thenReturn(Collections.emptyList());
+        // Mock with "any" as we are only testing without filtering
+        when(bookRepository.findAll(any(BookSpecification.class), any(Pageable.class)))
+            .thenReturn(Page.empty());
 
         mockMvc.perform(withJwt(get(BOOKS_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE), jwt))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$", hasSize(0)))
         ;
-        verify(bookRepository, only()).findAll(any(BookSpecification.class));
+        verify(bookRepository, only()).findAll(any(BookSpecification.class), any(Pageable.class));
     }
 
     /**
      * Tests the API response when requesting all {@link Book}s (i.e using the controller method
-     * {@link BookController#getAllBooks(BookSpecificationDto)}), and a non-empty {@link Iterable}
-     * is returned by the {@link BookRepository}.
+     * {@link BookController#getAllBooks(BookSpecificationDto, Pageable)}), and a non-empty {@link
+     * Iterable} is returned by the {@link BookRepository}.
      *
      * @param jwt An injected JWT to be sent in order to authenticate with the server
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
@@ -176,15 +181,16 @@ class BookControllerTest {
         final var mockedList = TestHelper.mockBookList(maxListSize);
         mockedList.forEach(TestHelper::addId);
         // Mock with "any" as we are only testing without filtering
-        when(bookRepository.findAll(any(BookSpecification.class)))
-            .thenReturn(mockedList);
+        when(bookRepository.findAll(any(BookSpecification.class), any(Pageable.class)))
+            .thenReturn(new PageImpl<>(mockedList))
+        ;
         mockMvc.perform(withJwt(get(BOOKS_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE), jwt))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$", hasSize(mockedList.size())))
             .andExpect(bookListJsonResultMatcher(mockedList))
         ;
-        verify(bookRepository, only()).findAll(any(BookSpecification.class));
+        verify(bookRepository, only()).findAll(any(BookSpecification.class), any(Pageable.class));
     }
 
 
