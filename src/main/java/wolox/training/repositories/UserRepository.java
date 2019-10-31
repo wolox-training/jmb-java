@@ -3,6 +3,7 @@ package wolox.training.repositories;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +14,7 @@ import wolox.training.models.User;
  * A repository for {@link User}s.
  */
 @Repository
-public interface UserRepository extends CrudRepository<User, Long> {
+public interface UserRepository extends CrudRepository<User, Long>, JpaSpecificationExecutor<User> {
 
     /**
      * Returns one {@link User} with the given {@code username}

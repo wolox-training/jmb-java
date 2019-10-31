@@ -44,6 +44,7 @@ import wolox.training.models.User;
 import wolox.training.repositories.BlacklistedJwtTokenRepository;
 import wolox.training.repositories.BookRepository;
 import wolox.training.repositories.UserRepository;
+import wolox.training.repositories.UserSpecification;
 import wolox.training.services.authentication.JwtTokenService;
 import wolox.training.utils.TestHelper;
 import wolox.training.utils.ValuesGenerator;
@@ -52,6 +53,7 @@ import wolox.training.web.JwtExtension.ValidJwt;
 import wolox.training.web.controllers.BookController;
 import wolox.training.web.controllers.UserController;
 import wolox.training.web.dtos.UserCreationRequestDto;
+import wolox.training.web.dtos.UserSpecificationDto;
 
 
 /**
@@ -162,7 +164,8 @@ class UserControllerTest {
 
     /**
      * Tests the API response when requesting all {@link User}s (i.e using the controller method
-     * {@link UserController#getAllUsers()}), and none is returned by the {@link UserRepository}.
+     * {@link UserController#getAllUsers(UserSpecificationDto)}), and none is returned by the {@link
+     * UserRepository}.
      *
      * @param jwt An injected JWT to be sent in order to authenticate with the server
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
@@ -179,7 +182,7 @@ class UserControllerTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$", hasSize(0)))
         ;
-        verify(userRepository, times(1)).findAll();
+        verify(userRepository, times(1)).findAll(any(UserSpecification.class));
         verify(userRepository, times(1)).getFirstByUsername(AUTHENTICATED_USERNAME);
         verifyNoMoreInteractions(userRepository);
         verifyZeroInteractions(bookRepository);
@@ -187,8 +190,8 @@ class UserControllerTest {
 
     /**
      * Tests the API response when requesting all {@link User}s (i.e using the controller method
-     * {@link UserController#getAllUsers()}), and a non-empty {@link Iterable} is returned by the
-     * {@link UserRepository}.
+     * {@link UserController#getAllUsers(UserSpecificationDto)}), and a non-empty {@link Iterable}
+     * is returned by the {@link UserRepository}.
      *
      * @param jwt An injected JWT to be sent in order to authenticate with the server
      * @throws Exception if {@link MockMvc#perform(RequestBuilder)} throws it.
@@ -199,7 +202,9 @@ class UserControllerTest {
     void testGetAllUsersReturningNonEmptyList(@ValidJwt final String jwt) throws Exception {
         final var maxListSize = 10;
         final var mockedList = TestHelper.mockUserList(maxListSize);
-        when(userRepository.findAll()).thenReturn(mockedList);
+        // Mock with "any" as we are only testing without filtering
+        when(userRepository.findAll(Mockito.any(UserSpecification.class)))
+            .thenReturn(mockedList);
         mockMvc.perform(
             withJwt(get(USERS_PATH).accept(MediaType.APPLICATION_JSON_UTF8_VALUE), jwt)
         )
@@ -208,7 +213,7 @@ class UserControllerTest {
             .andExpect(jsonPath("$", hasSize(mockedList.size())))
             .andExpect(WebTestHelper.userListJsonResultMatcher(mockedList))
         ;
-        verify(userRepository, times(1)).findAll();
+        verify(userRepository, times(1)).findAll(any(UserSpecification.class));
         verify(userRepository, times(1)).getFirstByUsername(AUTHENTICATED_USERNAME);
         verifyNoMoreInteractions(userRepository);
         verifyZeroInteractions(bookRepository);

@@ -17,6 +17,7 @@ import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
 import wolox.training.services.open_library.OpenLibraryService;
 import wolox.training.web.dtos.BookCreationRequestDto;
+import wolox.training.web.dtos.BookSpecificationDto;
 
 /**
  * The {@link Book}s REST controller.
@@ -61,8 +62,8 @@ public class BookController {
      * Might be empty.
      */
     @GetMapping
-    public ResponseEntity<Iterable<Book>> getAllBooks() {
-        final var books = bookRepository.findAll();
+    public ResponseEntity<Iterable<Book>> getAllBooks(final BookSpecificationDto dto) {
+        final var books = bookRepository.findAll(dto.getSpecification());
         return ResponseEntity.ok(books);
     }
 

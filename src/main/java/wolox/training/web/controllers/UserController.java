@@ -4,7 +4,6 @@ import java.security.Principal;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
@@ -29,6 +28,7 @@ import wolox.training.repositories.UserRepository;
 import wolox.training.web.dtos.ChangePasswordRequestDto;
 import wolox.training.web.dtos.UserCreationRequestDto;
 import wolox.training.web.dtos.UserDownloadDto;
+import wolox.training.web.dtos.UserSpecificationDto;
 
 /**
  * The {@link User}'s REST controller.
@@ -72,8 +72,9 @@ public class UserController {
      * Might be empty.
      */
     @GetMapping
-    public ResponseEntity<Iterable<UserDownloadDto>> getAllUsers() {
-        final var users = StreamSupport.stream(userRepository.findAll().spliterator(), false)
+    public ResponseEntity<Iterable<UserDownloadDto>> getAllUsers(final UserSpecificationDto dto) {
+        final var users = userRepository.findAll(dto.getSpecification())
+            .stream()
             .map(UserDownloadDto::new)
             .collect(Collectors.toList());
 
